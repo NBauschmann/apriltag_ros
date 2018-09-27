@@ -20,28 +20,20 @@ Tag_list = [se.Tag_0, se.Tag_1, se.Tag_2, se.Tag_3, se.Tag_4]
 # add more tags in tags_file.py
 
 
-#fig1 = plt.figure(2)
-#ax = fig1.add_subplot(111)#, projection='3d')
-#plt.ion()
-
-
 class TagMonitor(object):
     def __init__(self, pub):
         self.__pub = pub
 
     def callback(self, msg):
-        #print('num tags: ' + str(len(msg.detections)))
 
         absolute_position_list = []
         absolute_orientation_list = []
-        tag_id_list = []
         all_measurements = []
 
-        #get information from published message apriltags
+        # get information from published message apriltags
         for tag in msg.detections:
 
             tag_id = int(tag.id[0])
-            tag_id_list.append(tag_id)
             dist_cam_tag = np.array([[tag.pose.pose.pose.position.x], [tag.pose.pose.pose.position.y], [tag.pose.pose.pose.position.z]])
             quat_cam_tag = Quaternion(tag.pose.pose.pose.orientation.x, tag.pose.pose.pose.orientation.y, tag.pose.pose.pose.orientation.z, tag.pose.pose.pose.orientation.w)
 
@@ -63,9 +55,7 @@ class TagMonitor(object):
 
             all_measurements.append(measurement)
 
-        #rospy.loginfo('positions: {}, orientations: {}, Tags detected: {}'.format(absolute_position_list, absolute_orientation_list, tag_id_list))
-
-        #publish calculated poses
+        # publish calculated poses
         hps = HippoPoses()
         measurements_poses = []
 
@@ -93,42 +83,15 @@ class TagMonitor(object):
         self.__pub.publish(hps)
 
 
-        """
-        #plt.clf()
-        #ax.cla()
-        #plt.gcf().clf()
-        #counter = counter + 1
-        ax.plot(absolute_position[0], absolute_position[1], "o", label='1')
-       
-        # ax.scatter(absolute_position[0], absolute_position[1], zs=absolute_position[2], c='red')
-        ax.set_xlabel('Distance in x [m]')
-        ax.set_ylabel('Distance in y [m]')
-        # ax.set_zlabel('Distance in m (z)')
-        ax.set_xlim(0, 5.0)
-        ax.set_ylim(0, 3.0)
-        # ax.set_zlim(-2.0, 2.0)
-        ax.legend()
-        ax.draw
-        #plt.pause(1)
-        #print(str(absolute_position[0]) +', '+ str(absolute_position[1]) +', ' + str(absolute_position[2]))
-        """
-
-
 def main():
 
-    rospy.init_node('localization_node')#, anonymous=True)
+    rospy.init_node('localization_node')
     pub = rospy.Publisher('hippo_poses', HippoPoses, queue_size=10)
     monitor = TagMonitor(pub)
     rospy.Subscriber("/tag_detections", AprilTagDetectionArray, monitor.callback)
 
-    #plt.pause(0.01)
-    #comment this out instead of plt.show() to plot
-
     rospy.spin()
 
-    #plt.show(block=True)
 
-    #plt.cla()
-    #plt.close()
 if __name__ == '__main__':
     main()
