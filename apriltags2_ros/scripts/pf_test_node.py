@@ -3,17 +3,23 @@
 import rospy
 import numpy as np
 from numpy import *
+import time
 import math
 from pyquaternion import Quaternion
 import random
 from scipy.stats import multivariate_normal
 
+import threading
+from threading import Lock
 from os import path
+
+# import settings
 import tag_class as tc
 import settings as se
 
-import matplotlib.pyplot as plt
-from matplotlib.patches import Circle
+import utils as Utils   # is this useful?
+
+# import messages
 from geometry_msgs.msg import Pose
 from apriltags2_ros.msg import HippoPose
 from apriltags2_ros.msg import HippoPoses
@@ -47,14 +53,8 @@ if meas_type == 2:
 else:
     numV = 4  # tag_id, x, y, z
 
-# number of particles used
-numP = 200
-
 # tags from tags_file, add more there
 tags = [se.Tag_4]
-
-fig = plt.figure()
-
 
 def random_quaternion():
     """returns uniformly-distributed random unit quaternion for sampling orientations"""
@@ -274,7 +274,7 @@ class Boat(object):
         return weight
 
 
-class ParticleFilter(object):
+class ParticleFilter1(object):
     def __init__(self, pub, particles):
         self.__pub = pub
         self.__particles = particles
@@ -310,7 +310,6 @@ class ParticleFilter(object):
         z_mean = None
 
         if len(measurements) > 0:
-
 
             # weight particles according to how likely the measurement would be
             weights = []
@@ -361,7 +360,174 @@ class ParticleFilter(object):
 
         self.__pub.publish(pub_pose)
 
+particles1 = np.zeros((se.numP, 3))
+class ParticleFilter():
+    """
+    
+    """
 
+    def __init__(self):
+
+        # parameters
+        self.numP = se.numP
+        self.move_noise_x = se.move_noise_x
+        self.move_noise_y = se.move_noise_y
+        self.move_noise_z = se.move_noise_z
+
+        # data used in particle filter algorithm
+        self.camera_initialized = False
+        self.initialized_particles = False
+
+        self.iterations = 0
+        self.state_lock = Lock()
+
+        #
+        self.measurement = None
+
+        # particle poses and weights
+        self.particle_indices = np.arange(self.numP)
+        self.particles1 = np.zeros((self.numP, 3))  # so far x, y, z
+        self.particles = self.initialize_global(particles1)
+        self.weights = np.ones(self.numP) / float(self.numP)
+        self.estimated_pose = None
+
+        # initialize the state
+        self.timer = Utils.Timer(10)
+
+        # published topic
+        self.pose_pub = rospy.Publisher("/estimated_pose", Pose, queue_size=10)
+
+        # subscribed topic
+        self.tags_sub = rospy.Subscriber("/hippo_poses", HippoPoses, self.read_hippo_poses)
+
+    def read_hippo_poses(self, msg):
+
+        #if not self.initialized_particles:
+        #    self.initialize_global()
+
+
+        counter = len(msg.poses)
+        self.measurement = np.zeros((counter, 4))
+        # array = ([[tag id, x, y, z],
+        #           [tag id, x, y, z],
+        #           ...
+        #           [tag id, x, y, z]])
+        #
+        for counter, p in enumerate(msg.poses):
+            self.measurement[counter][0] = p.id
+            self.measurement[counter][1] = p.pose.position.x * 1000
+            self.measurement[counter][2] = p.pose.position.y * 1000
+            self.measurement[counter][3] = p.pose.position.z * 1000
+
+        self.camera_initialized = True
+        #print self.measurement
+
+        self.update()
+
+    def initialize_global(self, particles):
+
+        self.state_lock.acquire()
+        for counter in range(self.numP):
+            particles[counter][0] = random.random() * se.tank_size_x
+            particles[counter][1] = random.random() * se.tank_size_y
+            particles[counter][2] = random.random() * se.tank_size_z
+        self.state_lock.release()
+        self.initialized_particles = True
+        print "initialized global particle distribution"
+
+        return particles
+
+    def motion_model(self, proposal_dist):
+        #
+        for counter in range(self.numP):
+            proposal_dist[counter][0] += random.gauss(0, self.move_noise_x)
+            proposal_dist[counter][1] += random.gauss(0, self.move_noise_y)
+            proposal_dist[counter][2] += random.gauss(0, self.move_noise_z)
+
+
+
+
+    def sensor_model(self, proposal_dist, observation, weights):
+        # do something
+        #print self.iterations
+        #print observation
+
+        len_obs = len(observation)
+        predicted_observation = np.zeros((len_obs, 4))
+
+        m = np.zeros((len_obs * 4, len_obs * 4))
+        for ind in range(len_obs * 4):
+            m[ind][ind] = 50.0 * 50.0
+        cov_matrix = m
+
+        for particle in range(self.numP):
+            for i in range(len_obs):
+                predicted_observation[i][0] = observation[i][0]
+                predicted_observation[i][1] = self.particles[particle][0]
+                predicted_observation[i][2] = self.particles[particle][1]
+                predicted_observation[i][3] = self.particles[particle][2]
+
+                #print self.particles
+                #print observation
+                #print predicted_observation
+
+            self.weights[particle] = multivariate_normal.pdf(np.reshape(predicted_observation, len_obs * 4), mean=np.reshape(observation, len_obs * 4), cov=cov_matrix)
+            #print self.weights
+
+
+    def particle_filter_algorithm(self, observation):
+
+        # todo: change order?
+        # draw the proposal distribution from the old particles
+        proposal_indices = np.random.choice(self.particle_indices, self.numP, p=self.weights)
+        proposal_distribution = self.particles[proposal_indices,:]
+
+        # apply motion model
+        self.motion_model(proposal_distribution)
+        # sensor model, weighting particles
+        self.sensor_model(proposal_distribution, observation, self.weights)
+        # normalizing weights again
+        self.weights /= np.sum(self.weights)
+
+        self.particles = proposal_distribution
+
+    def expected_pose(self):
+        # print np.dot(self.particles.transpose(), self.weights)
+        return np.dot(self.particles.transpose(), self.weights)
+
+    def update(self):
+        if self.camera_initialized:
+            if self.state_lock.locked():
+                #pass
+                print "concurrency error avoided"
+            else:
+                self.state_lock.acquire()
+                self.timer.tick()
+
+
+
+                self.iterations += 1
+
+                observation = np.copy(self.measurement)
+                # action =
+
+                # run partilce_filter_algoritm:
+                self.particle_filter_algorithm(observation)
+                self.estimated_pose = self.expected_pose()
+                #
+                self.state_lock.release()
+
+                # publish estimated pose
+                if isinstance(self.estimated_pose, np.ndarray):
+                    p = Pose()
+                    p.position.x = self.estimated_pose[0]
+                    p.position.y = self.estimated_pose[1]
+                    p.position.z = self.estimated_pose[2]
+                    self.pose_pub.publish(p)
+        else:
+            print "Camera not initialized"
+
+"""
 def main():
 
     particles = []
@@ -375,7 +541,7 @@ def main():
     # initialize subscriber and publisher
     rospy.init_node('particle_filter_node')
     pub = rospy.Publisher('estimated_pose', Pose, queue_size=10)
-    particle_filter = ParticleFilter(pub, particles)
+    particle_filter = ParticleFilter1(pub, particles)
     rospy.Subscriber("/hippo_poses", HippoPoses, particle_filter.callback)
 
     # rospy.loginfo('counter: {}'.format(counter))
@@ -384,6 +550,13 @@ def main():
         pass
 
     # rospy.spin()
+"""
+
+
 
 if __name__ == '__main__':
-    main()
+    # main()
+    rospy.init_node('pf_test_node')
+    pf = ParticleFilter()
+    rospy.spin()
+

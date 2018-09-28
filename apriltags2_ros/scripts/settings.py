@@ -12,12 +12,19 @@ and any other parameters needed to avoid setting them in each node separately.
 
 """
 
+# Number of particles for particle filter
+numP = 200
+
+# Particle filter parameters
+move_noise_x = 5
+move_noise_y = 5
+move_noise_z = 5
 
 # size of tank:
 # so far minimum = 0 todo
 tank_size_x = 4000.0
 tank_size_y = 2000.0
-tank_size_z = 2000.0
+tank_size_z = 200.0
 
 
 """
@@ -64,4 +71,4 @@ Tag_0 = tc.Tag(0, np.array([0, 0, 0]), tag_w1_orientation)
 Tag_1 = tc.Tag(1, np.array([4.383, 0.512, 0.0]), tag_w1_orientation)
 Tag_2 = tc.Tag(2, np.array([4.383, 1.477, 0.0]), tag_w1_orientation)
 Tag_3 = tc.Tag(3, np.array([0, 0, 0]), tag_w1_orientation)
-Tag_4 = tc.Tag(4, np.array([2.000, 0.000, 0.0]), tag_w1_orientation)
+Tag_4 = tc.Tag(4, np.array([4.000, 0.000, 0.0]), tag_w1_orientation)
