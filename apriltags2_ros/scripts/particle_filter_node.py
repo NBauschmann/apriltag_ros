@@ -12,8 +12,6 @@ from os import path
 import tag_class as tc
 import settings as se
 
-import matplotlib.pyplot as plt
-from matplotlib.patches import Circle
 from geometry_msgs.msg import Pose
 from apriltags2_ros.msg import HippoPose
 from apriltags2_ros.msg import HippoPoses
@@ -52,8 +50,6 @@ numP = 200
 
 # tags from tags_file, add more there
 tags = [se.Tag_4]
-
-fig = plt.figure()
 
 
 def random_quaternion():
@@ -227,6 +223,9 @@ class Boat(object):
             for id in seen_tag_ids:
                 if predicted_measurement_all[ind][0] == id:
                     predicted_measurement.append(predicted_measurement_all[ind])
+
+        #print predicted_measurement
+
         """
         if meas_type == 2:
             q_dist_list = []
@@ -278,18 +277,15 @@ class ParticleFilter(object):
     def __init__(self, pub, particles):
         self.__pub = pub
         self.__particles = particles
+        self.__message = []
 
     def callback(self, msg):
 
+        old_measurements = []
         measurements = []
 
         for p in msg.poses:
-
-            tag_id = p.id
-            # position = np.array([[p.pose.position.x], [p.pose.position.y], [p.pose.position.z]])
-            # orientation = Quaternion(p.pose.orientation.x, p.pose.orientation.y, p.pose.orientation.z, p.pose.orientation.w)
-            # measurement = [tag_id, position, orientation]
-            measurement = [tag_id, p.pose.position.x * 1000, p.pose.position.y * 1000, p.pose.position.z * 1000]
+            measurement = [p.id, p.pose.position.x * 1000, p.pose.position.y * 1000, p.pose.position.z * 1000]
 
             measurements.append(measurement)
 
@@ -305,12 +301,8 @@ class ParticleFilter(object):
 
         # print len(measurements)
 
-        x_mean = None
-        y_mean = None
-        z_mean = None
-
-        if len(measurements) > 0:
-
+        #print self.__message
+        if self.__message != measurements:
 
             # weight particles according to how likely the measurement would be
             weights = []
@@ -335,21 +327,23 @@ class ParticleFilter(object):
                     index = (index + 1) % numP
 
                 particles3.append(self.__particles[index])
-
-            all_x = []
-            all_y = []
-            all_z = []
-            for particle in particles3:
-                all_x.append(particle.get_x())
-                all_y.append(particle.get_y())
-                all_z.append(particle.get_z())
-            x_mean = mean(all_x)
-            y_mean = mean(all_y)
-            z_mean = mean(all_z)
-
-            #rospy.loginfo('seen_tag_id: {}, x_mean: {}'.format(tag_id, x_mean))
-
             self.__particles = particles3
+
+
+        all_x = []
+        all_y = []
+        all_z = []
+        for particle in self.__particles:
+            all_x.append(particle.get_x())
+            all_y.append(particle.get_y())
+            all_z.append(particle.get_z())
+        x_mean = mean(all_x)
+        y_mean = mean(all_y)
+        z_mean = mean(all_z)
+
+        print np.std(all_x), np.std(all_y), np.std(all_z)
+        #rospy.loginfo('seen_tag_id: {}, x_mean: {}'.format(tag_id, x_mean))
+        self.__message = measurements
 
         # publish estimated pose
 
@@ -369,9 +363,9 @@ def main():
     # move_noise determines how much particles move each iteration during update atm
     for i in range(numP):
         particle = Boat()
-        particle.set_noise(0.01, 10, 0.5)
+        particle.set_noise(0.0, 10, 0.5)
         particles.append(particle)
-
+    print "Particles initialized"
     # initialize subscriber and publisher
     rospy.init_node('particle_filter_node')
     pub = rospy.Publisher('estimated_pose', Pose, queue_size=10)

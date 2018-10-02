@@ -65,10 +65,11 @@ tag_w4_orientation = Quaternion(matrix=rotation_w4)
 
 
 """
-Create object of class Tag for every used tag
+Create object of class Tag for every used tag 
+in METER!!
 """
 Tag_0 = tc.Tag(0, np.array([0, 0, 0]), tag_w1_orientation)
 Tag_1 = tc.Tag(1, np.array([4.383, 0.512, 0.0]), tag_w1_orientation)
 Tag_2 = tc.Tag(2, np.array([4.383, 1.477, 0.0]), tag_w1_orientation)
 Tag_3 = tc.Tag(3, np.array([0, 0, 0]), tag_w1_orientation)
-Tag_4 = tc.Tag(4, np.array([4.000, 0.000, 0.0]), tag_w1_orientation)
+Tag_4 = tc.Tag(4, np.array([4.000, 1.0, 0.5]), tag_w1_orientation)
