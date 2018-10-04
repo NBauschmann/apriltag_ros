@@ -12,7 +12,11 @@ from os import path
 import tag_class as tc
 import settings as se
 
-from geometry_msgs.msg import Pose
+import geometry_msgs
+import std_msgs.msg
+from geometry_msgs.msg import PoseStamped
+
+
 from apriltags2_ros.msg import HippoPose
 from apriltags2_ros.msg import HippoPoses
 
@@ -48,8 +52,8 @@ else:
 # number of particles used
 numP = 200
 
-# tags from tags_file, add more there
-tags = [se.Tag_4]
+# tags from settings, add more there
+tags = se.tags
 
 
 def random_quaternion():
@@ -263,7 +267,7 @@ class Boat(object):
         # covariance matrix (diagonal)
         m = np.zeros((len_meas * numV, len_meas * numV))
         for ind in range(len_meas * numV):
-            m[ind][ind] = 50.0 * 50.0
+            m[ind][ind] = 100.0 * 100.0
         cov_matrix = m
 
         # weight of particles
@@ -284,6 +288,10 @@ class ParticleFilter(object):
         old_measurements = []
         measurements = []
 
+        #print msg.header.seq
+
+        #print len(msg.poses)
+
         for p in msg.poses:
             measurement = [p.id, p.pose.position.x * 1000, p.pose.position.y * 1000, p.pose.position.z * 1000]
 
@@ -302,7 +310,7 @@ class ParticleFilter(object):
         # print len(measurements)
 
         #print self.__message
-        if self.__message != measurements:
+        if len(msg.poses) > 0:
 
             # weight particles according to how likely the measurement would be
             weights = []
@@ -328,7 +336,8 @@ class ParticleFilter(object):
 
                 particles3.append(self.__particles[index])
             self.__particles = particles3
-
+        else:
+            print("No new Measurement")
 
         all_x = []
         all_y = []
@@ -341,17 +350,21 @@ class ParticleFilter(object):
         y_mean = mean(all_y)
         z_mean = mean(all_z)
 
-        print np.std(all_x), np.std(all_y), np.std(all_z)
+        #print np.std(all_x), np.std(all_y), np.std(all_z)
         #rospy.loginfo('seen_tag_id: {}, x_mean: {}'.format(tag_id, x_mean))
         self.__message = measurements
 
         # publish estimated pose
 
-        pub_pose = Pose()
+        pub_pose = PoseStamped()
 
-        pub_pose.position.x = x_mean
-        pub_pose.position.y = y_mean
-        pub_pose.position.z = z_mean
+        pub_pose.header = std_msgs.msg.Header()
+        pub_pose.header.stamp = rospy.Time.now()
+        pub_pose.header.frame_id = "world"
+
+        pub_pose.pose.position.x = x_mean
+        pub_pose.pose.position.y = y_mean
+        pub_pose.pose.position.z = z_mean
 
         self.__pub.publish(pub_pose)
 
@@ -363,14 +376,14 @@ def main():
     # move_noise determines how much particles move each iteration during update atm
     for i in range(numP):
         particle = Boat()
-        particle.set_noise(0.0, 10, 0.5)
+        particle.set_noise(0.0, 25, 0.5)
         particles.append(particle)
     print "Particles initialized"
     # initialize subscriber and publisher
     rospy.init_node('particle_filter_node')
-    pub = rospy.Publisher('estimated_pose', Pose, queue_size=10)
+    pub = rospy.Publisher('estimated_pose', PoseStamped, queue_size=1)
     particle_filter = ParticleFilter(pub, particles)
-    rospy.Subscriber("/hippo_poses", HippoPoses, particle_filter.callback)
+    rospy.Subscriber("/hippo_poses", HippoPoses, particle_filter.callback, queue_size=1)
 
     # rospy.loginfo('counter: {}'.format(counter))
 

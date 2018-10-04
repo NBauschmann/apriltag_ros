@@ -7,6 +7,7 @@ import math
 import tag_class as tc
 import settings as se
 import geometry_msgs
+import std_msgs.msg
 import time
 
 from mpl_toolkits.mplot3d import Axes3D
@@ -18,7 +19,7 @@ from apriltags2_ros.msg import HippoPoses
 
 
 # todo: move this to settings as well
-Tag_list = [se.Tag_0, se.Tag_1, se.Tag_2, se.Tag_3, se.Tag_4]
+Tag_list = se.tags
 # add more tags in tags_file.py
 
 
@@ -80,6 +81,9 @@ class TagMonitor(object):
 
             measurements_poses.append(hp)
 
+        hps.header = std_msgs.msg.Header()
+        hps.header.stamp = rospy.Time.now()
+        hps.header.frame_id = "world"
         hps.poses = measurements_poses
 
         self.__pub.publish(hps)

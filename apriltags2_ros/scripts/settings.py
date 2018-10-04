@@ -16,6 +16,7 @@ and any other parameters needed to avoid setting them in each node separately.
 numP = 200
 
 # Particle filter parameters
+# not used yet
 move_noise_x = 5
 move_noise_y = 5
 move_noise_z = 5
@@ -24,7 +25,7 @@ move_noise_z = 5
 # so far minimum = 0 todo
 tank_size_x = 4000.0
 tank_size_y = 2000.0
-tank_size_z = 200.0
+tank_size_z = 1500.0
 
 
 """
@@ -69,7 +70,13 @@ Create object of class Tag for every used tag
 in METER!!
 """
 Tag_0 = tc.Tag(0, np.array([0, 0, 0]), tag_w1_orientation)
-Tag_1 = tc.Tag(1, np.array([4.383, 0.512, 0.0]), tag_w1_orientation)
-Tag_2 = tc.Tag(2, np.array([4.383, 1.477, 0.0]), tag_w1_orientation)
+#Tag_1 = tc.Tag(1, np.array([4.383, 0.512, 0.0]), tag_w1_orientation)
+#Tag_2 = tc.Tag(2, np.array([4.383, 1.477, 0.0]), tag_w1_orientation)
+Tag_1 = tc.Tag(1, np.array([4.0, 1.0, 0.5]), tag_w1_orientation)
+Tag_2 = tc.Tag(2, np.array([4.0, 1.2, 0.5]), tag_w1_orientation)
+
 Tag_3 = tc.Tag(3, np.array([0, 0, 0]), tag_w1_orientation)
 Tag_4 = tc.Tag(4, np.array([4.000, 1.0, 0.5]), tag_w1_orientation)
+
+
+tags = [Tag_0, Tag_1, Tag_2, Tag_3, Tag_4]
