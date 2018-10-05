@@ -474,7 +474,6 @@ class ParticleFilter():
             self.weights[particle] = multivariate_normal.pdf(np.reshape(predicted_observation, len_obs * 4), mean=np.reshape(observation, len_obs * 4), cov=cov_matrix)
             #print self.weights
 
-
     def particle_filter_algorithm(self, observation):
 
         # todo: change order?
@@ -499,7 +498,7 @@ class ParticleFilter():
         if self.camera_initialized:
             if self.state_lock.locked():
                 #pass
-                print "concurrency error avoided"
+                print "state_lock.locked"
             else:
                 self.state_lock.acquire()
                 self.timer.tick()
@@ -526,32 +525,6 @@ class ParticleFilter():
                     self.pose_pub.publish(p)
         else:
             print "Camera not initialized"
-
-"""
-def main():
-
-    particles = []
-    # create random particles (numP = number of particles)
-    # move_noise determines how much particles move each iteration during update atm
-    for i in range(numP):
-        particle = Boat()
-        particle.set_noise(0.01, 10, 0.5)
-        particles.append(particle)
-
-    # initialize subscriber and publisher
-    rospy.init_node('particle_filter_node')
-    pub = rospy.Publisher('estimated_pose', Pose, queue_size=10)
-    particle_filter = ParticleFilter1(pub, particles)
-    rospy.Subscriber("/hippo_poses", HippoPoses, particle_filter.callback)
-
-    # rospy.loginfo('counter: {}'.format(counter))
-
-    while not rospy.is_shutdown():
-        pass
-
-    # rospy.spin()
-"""
-
 
 
 if __name__ == '__main__':
