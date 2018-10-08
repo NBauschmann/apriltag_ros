@@ -13,8 +13,8 @@ import tag_class as tc
 import settings as se
 
 import geometry_msgs
-import std_msgs.msg
-from geometry_msgs.msg import PoseStamped
+from std_msgs.msg import *
+from geometry_msgs.msg import *
 
 
 from apriltags2_ros.msg import HippoPose
@@ -29,25 +29,11 @@ actual measurements (distance and orientation from camera to tag).
 """
 
 
-simulation = True
-
-# What kind of measurement?
-"""
-set meas_type: 
-meas_type = 1: 3D measurement with known camera_orientation (set below!) NOT WORKING ATM
-meas_type = 2: 3D measurement with unknown camera_orientation
-                -> 6D measurement, using measured quaternion to transform measured position in world frame
-"""
-meas_type = 2
-
 # set this if meas_type = 1
 cam_orientation = Quaternion(0.5, 0.5, 0.5, 0.5)  # quaternion for camera facing wall with big windows
 
 # number of measured variables per measurement:
-if meas_type == 2:
-    numV = 4  # tag_id, x, y, z
-else:
-    numV = 4  # tag_id, x, y, z
+numV = 4  # tag_id, x, y, z
 
 # number of particles used
 numP = 200
@@ -68,6 +54,17 @@ def random_quaternion():
     y = math.cos(theta1) * sigma1
     z = math.sin(theta2) * sigma2
     return Quaternion(w, x, y, z)
+
+
+def make_header(frame_id, stamp=None):
+    if not stamp:
+        stamp = rospy.Time.now()
+    header = Header()
+    header.stamp = stamp
+    header.frame_id = frame_id
+    return header
+
+
 
 
 class Boat(object):
@@ -98,8 +95,6 @@ class Boat(object):
         self.__y = y
         self.__z = z
 
-        #self.__orientation = orientation
-
     def get_position(self):
         return self.__x, self.__y, self.__z
 
@@ -114,6 +109,7 @@ class Boat(object):
 
     #def get_orientation(self):
     #    return self.__orientation
+
 
     def set_noise(self, new_sense_noise, new_move_noise, new_turn_noise):
         """set noise parameters for boat and particles"""
@@ -183,30 +179,17 @@ class Boat(object):
 
         for i in range(len(tags)):
 
-            if meas_type == 2:  # measurement needs to include quaternions as well!!!!
-                if noisy:  # for simulation
-                    # orientation not noise yet
-                    measurement = [tags[i].get_id(), self.__x + random.gauss(0.0, self.__sense_noise),
-                                   self.__y + random.gauss(0.0, self.__sense_noise),
-                                   self.__z + random.gauss(0.0, self.__sense_noise)]#, self.__orientation]
-                    measured_tags.append(measurement)
+            if noisy:  # for simulation
+                # orientation not noise yet
+                measurement = [tags[i].get_id(), self.__x + random.gauss(0.0, self.__sense_noise),
+                               self.__y + random.gauss(0.0, self.__sense_noise),
+                               self.__z + random.gauss(0.0, self.__sense_noise)]#, self.__orientation]
+                measured_tags.append(measurement)
 
-                else:  # for measurement_prob
-                    measurement = [tags[i].get_id(), self.__x, self.__y, self.__z]#, self.__orientation]
-                    measured_tags.append(measurement)
-            """
-            else:
-                if noisy:  # for simulation
-                    measurement = [tags[i].get_id(),
-                                   tags[i].get_position_wf()[0] - self.__x + random.gauss(0.0, self.__sense_noise),
-                                   tags[i].get_position_wf()[1] - self.__y + random.gauss(0.0, self.__sense_noise),
-                                   tags[i].get_position_wf()[2] - self.__z + random.gauss(0.0, self.__sense_noise)]
-                    measured_tags.append(measurement)
-                else:
-                    measurement = [tags[i].get_id(), tags[i].get_position_wf()[0] - self.__x,
-                                   tags[i].get_position_wf()[1] - self.__y, tags[i].get_position_wf()[2] - self.__z]
-                    measured_tags.append(measurement)
-            """
+            else:  # for measurement_prob
+                measurement = [tags[i].get_id(), self.__x, self.__y, self.__z]#, self.__orientation]
+                measured_tags.append(measurement)
+
         return measured_tags
 
     def measurement_prob(self, measurements, tags):
@@ -219,16 +202,12 @@ class Boat(object):
 
         predicted_measurement_all = self.sense(tags, noisy=False)
 
-        # print predicted_measurement_all
-
         predicted_measurement = []
 
         for ind in range(len(predicted_measurement_all)):
             for id in seen_tag_ids:
                 if predicted_measurement_all[ind][0] == id:
                     predicted_measurement.append(predicted_measurement_all[ind])
-
-        #print predicted_measurement
 
         """
         if meas_type == 2:
@@ -267,7 +246,7 @@ class Boat(object):
         # covariance matrix (diagonal)
         m = np.zeros((len_meas * numV, len_meas * numV))
         for ind in range(len_meas * numV):
-            m[ind][ind] = 100.0 * 100.0
+            m[ind][ind] = 0.1 * 0.1
         cov_matrix = m
 
         # weight of particles
@@ -278,26 +257,32 @@ class Boat(object):
 
 
 class ParticleFilter(object):
-    def __init__(self, pub, particles):
+    def __init__(self, pub, pub2, pub3, particles):
         self.__pub = pub
+        self.__pub2 = pub2
+        self.__pub3 = pub3
         self.__particles = particles
         self.__message = []
+
+    def particle_to_pose(self, particle):
+        pose = Pose()
+        pose.position.x = particle.get_x()
+        pose.position.y = particle.get_y()
+        pose.position.z = particle.get_z()
+        return pose
+
+    def particles_to_poses(self, particles):
+        return map(self.particle_to_pose, particles)
 
     def callback(self, msg):
 
         old_measurements = []
         measurements = []
 
-        #print msg.header.seq
-
-        #print len(msg.poses)
-
         for p in msg.poses:
-            measurement = [p.id, p.pose.position.x * 1000, p.pose.position.y * 1000, p.pose.position.z * 1000]
+            measurement = [p.id, p.pose.position.x, p.pose.position.y, p.pose.position.z]
 
             measurements.append(measurement)
-
-        #print measurements
 
         # move particles (so far only adding random noise, noise parameter: move_noise)
         particles2 = []
@@ -307,9 +292,7 @@ class ParticleFilter(object):
         # particles_old = self.__particles # only needed for plotting
         self.__particles = particles2
 
-        # print len(measurements)
 
-        #print self.__message
         if len(msg.poses) > 0:
 
             # weight particles according to how likely the measurement would be
@@ -336,6 +319,7 @@ class ParticleFilter(object):
 
                 particles3.append(self.__particles[index])
             self.__particles = particles3
+
         else:
             print("No new Measurement")
 
@@ -350,24 +334,32 @@ class ParticleFilter(object):
         y_mean = mean(all_y)
         z_mean = mean(all_z)
 
-        #print np.std(all_x), np.std(all_y), np.std(all_z)
-        #rospy.loginfo('seen_tag_id: {}, x_mean: {}'.format(tag_id, x_mean))
-        self.__message = measurements
+        # print np.std(all_x), np.std(all_y), np.std(all_z)
+        # rospy.loginfo('seen_tag_id: {}, x_mean: {}'.format(tag_id, x_mean))
 
         # publish estimated pose
 
+        # as PoseStamped()
         pub_pose = PoseStamped()
-
-        pub_pose.header = std_msgs.msg.Header()
-        pub_pose.header.stamp = rospy.Time.now()
-        pub_pose.header.frame_id = "map"
-
+        pub_pose.header = make_header("map")
         pub_pose.pose.position.x = x_mean
         pub_pose.pose.position.y = y_mean
         pub_pose.pose.position.z = z_mean
-
         self.__pub.publish(pub_pose)
 
+        # as PointStamped()
+        pub_2 = PointStamped()
+        pub_2.header = make_header("map")
+        pub_2.point.x = x_mean
+        pub_2.point.y = y_mean
+        pub_2.point.z = z_mean
+        self.__pub2.publish(pub_2)
+
+        # publish particles as PoseArray()
+        pub3 = PoseArray()
+        pub3.header = make_header("map")
+        pub3.poses = self.particles_to_poses(self.__particles)
+        self.__pub3.publish(pub3)
 
 def main():
 
@@ -376,13 +368,15 @@ def main():
     # move_noise determines how much particles move each iteration during update atm
     for i in range(numP):
         particle = Boat()
-        particle.set_noise(0.0, 25, 0.5)
+        particle.set_noise(0.0, 0.025, 0.5)
         particles.append(particle)
     print "Particles initialized"
     # initialize subscriber and publisher
     rospy.init_node('particle_filter_node')
     pub = rospy.Publisher('estimated_pose', PoseStamped, queue_size=1)
-    particle_filter = ParticleFilter(pub, particles)
+    pub2 = rospy.Publisher('estimated_position', PointStamped, queue_size=1)
+    pub3 = rospy.Publisher('particle_poses', PoseArray, queue_size=1)
+    particle_filter = ParticleFilter(pub, pub2, pub3, particles)
     rospy.Subscriber("/hippo_poses", HippoPoses, particle_filter.callback, queue_size=1)
 
     # rospy.loginfo('counter: {}'.format(counter))
