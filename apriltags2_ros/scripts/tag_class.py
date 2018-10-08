@@ -3,7 +3,7 @@ import numpy as np
 import math
 
 from pyquaternion import Quaternion
-from aprilslam.msg import Apriltags
+#from aprilslam.msg import Apriltags
 
 
 class Tag(object):

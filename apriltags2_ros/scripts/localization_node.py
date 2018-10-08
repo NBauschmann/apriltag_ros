@@ -83,7 +83,7 @@ class TagMonitor(object):
 
         hps.header = std_msgs.msg.Header()
         hps.header.stamp = rospy.Time.now()
-        hps.header.frame_id = "world"
+        hps.header.frame_id = "map"
         hps.poses = measurements_poses
 
         self.__pub.publish(hps)

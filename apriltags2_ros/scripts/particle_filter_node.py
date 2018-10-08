@@ -360,7 +360,7 @@ class ParticleFilter(object):
 
         pub_pose.header = std_msgs.msg.Header()
         pub_pose.header.stamp = rospy.Time.now()
-        pub_pose.header.frame_id = "world"
+        pub_pose.header.frame_id = "map"
 
         pub_pose.pose.position.x = x_mean
         pub_pose.pose.position.y = y_mean
