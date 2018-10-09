@@ -16,7 +16,7 @@ if __name__ == '__main__':
 
     rospy.init_node('static_transform')
     br = tf2_ros.StaticTransformBroadcaster()
-    msgs = []
+    transforms = []
 
     for counter, tag in enumerate(tags):
         msg = geometry_msgs.msg.TransformStamped()
@@ -30,7 +30,7 @@ if __name__ == '__main__':
         msg.transform.rotation.y = tag.get_orientation_wf()[2]
         msg.transform.rotation.z = tag.get_orientation_wf()[3]
         msg.transform.rotation.w = tag.get_orientation_wf()[0]
-        msgs.append(msg)
+        transforms.append(msg)
 
-    br.sendTransform(msgs)
+    br.sendTransform(transforms)
     rospy.spin()

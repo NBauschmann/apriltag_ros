@@ -56,9 +56,6 @@ def random_quaternion():
     return Quaternion(w, x, y, z)
 
 
-
-
-
 class Boat(object):
     """used for both the actual boat and the particles"""
 
@@ -283,7 +280,6 @@ class ParticleFilter(object):
 
         # particles_old = self.__particles # only needed for plotting
         self.__particles = particles2
-
 
         if len(msg.poses) > 0:
 

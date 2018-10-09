@@ -6,9 +6,10 @@ import numpy as np
 import math
 import tag_class as tc
 import settings as se
-import geometry_msgs
+import utils as u
+from geometry_msgs.msg import *
 import std_msgs.msg
-from geometry_msgs import *
+import tf2_ros
 
 from pyquaternion import Quaternion
 from apriltags2_ros.msg import AprilTagDetectionArray
@@ -24,8 +25,9 @@ Tag_list = se.tags
 
 
 class TagMonitor(object):
-    def __init__(self, pub):
+    def __init__(self, pub, br):
         self.__pub = pub
+        self.__br = br
 
     def callback(self, msg):
 
@@ -33,10 +35,38 @@ class TagMonitor(object):
         absolute_orientation_list = []
         all_measurements = []
 
+        transforms = []
+
         # get information from published message apriltags
         for tag in msg.detections:
 
             tag_id = int(tag.id[0])
+
+            # publish camera pose (in tag frame) for rviz
+            x = tag.pose.pose.pose.position.x
+            y = tag.pose.pose.pose.position.y
+            z = tag.pose.pose.pose.position.z
+            qx = tag.pose.pose.pose.orientation.x
+            qy = tag.pose.pose.pose.orientation.y
+            qz = tag.pose.pose.pose.orientation.z
+            qw = tag.pose.pose.pose.orientation.w
+
+            msg = geometry_msgs.msg.TransformStamped()
+            msg.header = u.make_header(("Tag" + str(tag_id)))
+            #print msg.header
+            msg.child_frame_id = "Pose_Tag" + str(tag_id)
+            msg.transform.translation.x = -x
+            msg.transform.translation.y = -y
+            msg.transform.translation.z = -z
+            # the right format seems to be: x, y, z, w
+            msg.transform.rotation.x = qy
+            msg.transform.rotation.y = -qz
+            msg.transform.rotation.z = -qw
+            msg.transform.rotation.w = -qx
+            transforms.append(msg)
+
+            # transform pose into world frame
+            # todo: DOESNT WORK YET
             dist_cam_tag = np.array([[tag.pose.pose.pose.position.x], [tag.pose.pose.pose.position.y], [tag.pose.pose.pose.position.z]])
             quat_cam_tag = Quaternion(tag.pose.pose.pose.orientation.x, tag.pose.pose.pose.orientation.y, tag.pose.pose.pose.orientation.z, tag.pose.pose.pose.orientation.w)
 
@@ -46,7 +76,6 @@ class TagMonitor(object):
             absolute_orientation_list.append(absolute_orientation)
 
             measurement = []
-
             measurement.append(absolute_position[0])
             measurement.append(absolute_position[1])
             measurement.append(absolute_position[2])
@@ -57,6 +86,17 @@ class TagMonitor(object):
             measurement.append(tag_id)
 
             all_measurements.append(measurement)
+
+        # print transforms
+        # publish transforms
+
+        if len(transforms) < 1:
+            self.__br.sendTransform(transforms)
+
+        elif len(transforms) == 1:
+            self.__br.sendTransform(transforms[0])
+
+
 
         # publish calculated poses
         hps = HippoPoses()
@@ -89,12 +129,13 @@ class TagMonitor(object):
         self.__pub.publish(hps)
 
 
+
 def main():
 
     rospy.init_node('localization_node')
     pub = rospy.Publisher('hippo_poses', HippoPoses, queue_size=10)
-    #pub2 = rospy.Publisher('')
-    monitor = TagMonitor(pub)#, pub2)
+    br = tf2_ros.TransformBroadcaster()
+    monitor = TagMonitor(pub, br)
     rospy.Subscriber("/tag_detections", AprilTagDetectionArray, monitor.callback)
 
     rospy.spin()

@@ -7,7 +7,7 @@ import tag_class as tc
 
 """
 This file is for setting the position and orientation of each tag in the tank 
-(in world frame) and for setting tank measurements for particle filter
+(in world frame), tank measurements for particle filter
 and any other parameters needed to avoid setting them in each node separately.
 
 """
