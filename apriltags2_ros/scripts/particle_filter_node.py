@@ -15,7 +15,7 @@ import settings as se
 import geometry_msgs
 from std_msgs.msg import *
 from geometry_msgs.msg import *
-
+import utils as u
 
 from apriltags2_ros.msg import HippoPose
 from apriltags2_ros.msg import HippoPoses
@@ -55,14 +55,6 @@ def random_quaternion():
     z = math.sin(theta2) * sigma2
     return Quaternion(w, x, y, z)
 
-
-def make_header(frame_id, stamp=None):
-    if not stamp:
-        stamp = rospy.Time.now()
-    header = Header()
-    header.stamp = stamp
-    header.frame_id = frame_id
-    return header
 
 
 
@@ -341,7 +333,7 @@ class ParticleFilter(object):
 
         # as PoseStamped()
         pub_pose = PoseStamped()
-        pub_pose.header = make_header("map")
+        pub_pose.header = u.make_header("map")
         pub_pose.pose.position.x = x_mean
         pub_pose.pose.position.y = y_mean
         pub_pose.pose.position.z = z_mean
@@ -349,7 +341,7 @@ class ParticleFilter(object):
 
         # as PointStamped()
         pub_2 = PointStamped()
-        pub_2.header = make_header("map")
+        pub_2.header = u.make_header("map")
         pub_2.point.x = x_mean
         pub_2.point.y = y_mean
         pub_2.point.z = z_mean
@@ -357,9 +349,10 @@ class ParticleFilter(object):
 
         # publish particles as PoseArray()
         pub3 = PoseArray()
-        pub3.header = make_header("map")
+        pub3.header = u.make_header("map")
         pub3.poses = self.particles_to_poses(self.__particles)
         self.__pub3.publish(pub3)
+
 
 def main():
 

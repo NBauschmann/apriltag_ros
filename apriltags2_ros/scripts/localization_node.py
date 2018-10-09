@@ -8,9 +8,8 @@ import tag_class as tc
 import settings as se
 import geometry_msgs
 import std_msgs.msg
-import time
+from geometry_msgs import *
 
-from mpl_toolkits.mplot3d import Axes3D
 from pyquaternion import Quaternion
 from apriltags2_ros.msg import AprilTagDetectionArray
 from apriltags2_ros.msg import AprilTagDetection
@@ -20,6 +19,7 @@ from apriltags2_ros.msg import HippoPoses
 
 # todo: move this to settings as well
 Tag_list = se.tags
+
 # add more tags in tags_file.py
 
 
@@ -93,7 +93,8 @@ def main():
 
     rospy.init_node('localization_node')
     pub = rospy.Publisher('hippo_poses', HippoPoses, queue_size=10)
-    monitor = TagMonitor(pub)
+    #pub2 = rospy.Publisher('')
+    monitor = TagMonitor(pub)#, pub2)
     rospy.Subscriber("/tag_detections", AprilTagDetectionArray, monitor.callback)
 
     rospy.spin()
