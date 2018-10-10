@@ -22,16 +22,21 @@ class Tag(object):
     def get_orientation_wf(self):
         return self.__orientation_wf
 
-    def convert_location_to_absolute(self, quat_cam_tag_x, dist_cam_tag_x):
-        dist_cam_tag_tf = quat_cam_tag_x.rotate(dist_cam_tag_x)
-        dist_cam_tag_wf = self.__orientation_wf.rotate(dist_cam_tag_tf)
+    def convert_location_to_wf(self, quat_cam_tag_x, dist_cam_tag_x):
+        #dist_cam_tag_tf = quat_cam_tag_x.rotate(dist_cam_tag_x)
+        #dist_cam_tag_wf = self.__orientation_wf.rotate(dist_cam_tag_tf)
 
-        absolute_position = np.subtract(self.__position_wf, dist_cam_tag_wf)
-        return absolute_position
+        #position_cam_wf = np.subtract(self.__position_wf, dist_cam_tag_wf)
+
+
+        position_cam_wf =
+        return position_cam_wf
     
-    def convert_orientation_to_absolute(self, quat_cam_tag_x):
-        absolute_orientation = self.__orientation_wf * quat_cam_tag_x  # should be right quaternion now
-        return absolute_orientation
+    def convert_orientation_to_wf(self, quat_cam_tag_x):
+        orientation_cam_wf = self.__orientation_wf * quat_cam_tag_x  # should be right quaternion now
+        # pyquaternion says: q3 = q1 * q2 for q1 first, then q2
+        # it is: q3 = q2 * q1 for q1 first, then q2
+        return orientation_cam_wf
 
 
 """

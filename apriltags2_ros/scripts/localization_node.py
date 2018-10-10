@@ -31,8 +31,8 @@ class TagMonitor(object):
 
     def callback(self, msg):
 
-        absolute_position_list = []
-        absolute_orientation_list = []
+        position_cam_wf_list = []
+        orientation_cam_wf_list = []
         all_measurements = []
 
         transforms = []
@@ -40,9 +40,8 @@ class TagMonitor(object):
         # get information from published message apriltags
         for tag in msg.detections:
 
+            # get data from tag_detections
             tag_id = int(tag.id[0])
-
-            # publish camera pose (in tag frame) for rviz
             x = tag.pose.pose.pose.position.x
             y = tag.pose.pose.pose.position.y
             z = tag.pose.pose.pose.position.z
@@ -51,52 +50,58 @@ class TagMonitor(object):
             qz = tag.pose.pose.pose.orientation.z
             qw = tag.pose.pose.pose.orientation.w
 
+            #print "position" + str(x) + str(y) + str(z)
+            #print "orientation" + str(qx) + ' ' + str(qy) + ' ' +str(qz) + ' ' + str(qw)
+            """
+            # publish camera pose (in tag frame) for rviz
+            # doesn't work yet
             msg = geometry_msgs.msg.TransformStamped()
             msg.header = u.make_header(("Tag" + str(tag_id)))
-            #print msg.header
             msg.child_frame_id = "Pose_Tag" + str(tag_id)
             msg.transform.translation.x = -x
             msg.transform.translation.y = -y
             msg.transform.translation.z = -z
+
             # the right format seems to be: x, y, z, w
             msg.transform.rotation.x = qy
-            msg.transform.rotation.y = -qz
-            msg.transform.rotation.z = -qw
-            msg.transform.rotation.w = -qx
+            msg.transform.rotation.y = qz
+            msg.transform.rotation.z = qw
+            msg.transform.rotation.w = qx
             transforms.append(msg)
-
+            """
             # transform pose into world frame
             # todo: DOESNT WORK YET
-            dist_cam_tag = np.array([[tag.pose.pose.pose.position.x], [tag.pose.pose.pose.position.y], [tag.pose.pose.pose.position.z]])
-            quat_cam_tag = Quaternion(tag.pose.pose.pose.orientation.x, tag.pose.pose.pose.orientation.y, tag.pose.pose.pose.orientation.z, tag.pose.pose.pose.orientation.w)
+            dist_cam_tag = np.array([[x], [y], [z]])
 
-            absolute_position = Tag_list[tag_id].convert_location_to_absolute(quat_cam_tag, dist_cam_tag)
-            absolute_position_list.append(absolute_position)
-            absolute_orientation = Tag_list[tag_id].convert_orientation_to_absolute(quat_cam_tag)
-            absolute_orientation_list.append(absolute_orientation)
+            quat_cam_tag = Quaternion(qx, qy, qz, qw)
+            #print dist_cam_tag
+            #print quat_cam_tag
+
+            position_cam_wf = Tag_list[tag_id].convert_location_to_wf(quat_cam_tag, dist_cam_tag)
+            # print position_cam_wf
+            position_cam_wf_list.append(position_cam_wf)
+            orientation_cam_wf = Tag_list[tag_id].convert_orientation_to_wf(quat_cam_tag)
+            # print orientation_cam_wf
+            orientation_cam_wf_list.append(orientation_cam_wf)
 
             measurement = []
-            measurement.append(absolute_position[0])
-            measurement.append(absolute_position[1])
-            measurement.append(absolute_position[2])
-            measurement.append(absolute_orientation[0])
-            measurement.append(absolute_orientation[1])
-            measurement.append(absolute_orientation[2])
-            measurement.append(absolute_orientation[3])
+            measurement.append(position_cam_wf[0])
+            measurement.append(position_cam_wf[1])
+            measurement.append(position_cam_wf[2])
+            measurement.append(orientation_cam_wf[0])
+            measurement.append(orientation_cam_wf[1])
+            measurement.append(orientation_cam_wf[2])
+            measurement.append(orientation_cam_wf[3])
             measurement.append(tag_id)
 
             all_measurements.append(measurement)
 
-        # print transforms
         # publish transforms
-
         if len(transforms) < 1:
             self.__br.sendTransform(transforms)
 
         elif len(transforms) == 1:
             self.__br.sendTransform(transforms[0])
-
-
 
         # publish calculated poses
         hps = HippoPoses()
@@ -127,7 +132,6 @@ class TagMonitor(object):
         hps.poses = measurements_poses
 
         self.__pub.publish(hps)
-
 
 
 def main():
