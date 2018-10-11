@@ -11,15 +11,19 @@ This file is for setting the position and orientation of each tag in the tank
 and any other parameters needed to avoid setting them in each node separately.
 
 """
+# Particle filter parameters
 
-# Number of particles for particle filter
+# Number of particles
 numP = 200
 
-# Particle filter parameters
-# not used yet
-move_noise_x = 5
-move_noise_y = 5
-move_noise_z = 5
+# Noise parameters
+particle_sense_noise = 0
+particle_move_noise = 0.025
+particle_turn_noise = 0
+
+# Covariance matrix: standard deviation * standard deviation
+cov_mat_parameter = 0.1
+
 
 # size of tank:
 # so far minimum = 0 todo

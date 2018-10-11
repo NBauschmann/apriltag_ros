@@ -54,7 +54,7 @@ class TagMonitor(object):
             position_cam_wf = Tag_list[tag_id].convert_location_to_wf(quat_cam_tag, dist_cam_tag)
             orientation_cam_wf = Tag_list[tag_id].convert_orientation_to_wf(quat_cam_tag)
 
-            # publish "measured" camera pose (in world frame) for this tag
+            # publish "measured by this tag" camera pose (in world frame) as transform
             msg = geometry_msgs.msg.TransformStamped()
             msg.header = u.make_header("map")
             msg.child_frame_id = "Pose_Tag" + str(tag_id)
@@ -80,11 +80,7 @@ class TagMonitor(object):
             all_measurements.append(measurement)
 
         # publish transforms
-        if len(transforms) < 1:
-            self.__br.sendTransform(transforms)
-
-        elif len(transforms) == 1:
-            self.__br.sendTransform(transforms[0])
+        self.__br.sendTransform(transforms)
 
         # publish calculated poses
         hps = HippoPoses()

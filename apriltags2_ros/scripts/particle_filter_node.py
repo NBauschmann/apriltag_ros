@@ -96,9 +96,8 @@ class Boat(object):
     def get_z(self):
         return self.__z
 
-    #def get_orientation(self):
+    # def get_orientation(self):
     #    return self.__orientation
-
 
     def set_noise(self, new_sense_noise, new_move_noise, new_turn_noise):
         """set noise parameters for boat and particles"""
@@ -235,7 +234,7 @@ class Boat(object):
         # covariance matrix (diagonal)
         m = np.zeros((len_meas * numV, len_meas * numV))
         for ind in range(len_meas * numV):
-            m[ind][ind] = 0.1 * 0.1
+            m[ind][ind] = se.cov_mat_parameter * se.cov_mat_parameter
         cov_matrix = m
 
         # weight of particles
@@ -253,7 +252,8 @@ class ParticleFilter(object):
         self.__particles = particles
         self.__message = []
 
-    def particle_to_pose(self, particle):
+    @staticmethod
+    def particle_to_pose(particle):
         pose = Pose()
         pose.position.x = particle.get_x()
         pose.position.y = particle.get_y()
@@ -265,7 +265,6 @@ class ParticleFilter(object):
 
     def callback(self, msg):
 
-        old_measurements = []
         measurements = []
 
         for p in msg.poses:
@@ -293,7 +292,7 @@ class ParticleFilter(object):
 
             weights /= sum(weights)  # normalize
 
-            # resample particles, @todo look over this again
+            # resample particles
             particles3 = []
             index = int(random.random() * numP)
             beta = 0.0
@@ -308,6 +307,7 @@ class ParticleFilter(object):
                 particles3.append(self.__particles[index])
             self.__particles = particles3
 
+        # if len(msg.poses) = 0 -> no new measurements
         else:
             print("No new Measurement")
 
@@ -357,7 +357,7 @@ def main():
     # move_noise determines how much particles move each iteration during update atm
     for i in range(numP):
         particle = Boat()
-        particle.set_noise(0.0, 0.025, 0.5)
+        particle.set_noise(se.particle_sense_noise, se.particle_move_noise, se.particle_turn_noise)
         particles.append(particle)
     print "Particles initialized"
     # initialize subscriber and publisher
