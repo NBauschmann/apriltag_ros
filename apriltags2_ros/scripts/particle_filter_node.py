@@ -41,7 +41,7 @@ numP = 200
 # tags from settings, add more there
 tags = se.tags
 
-
+# not needed anymore
 def random_quaternion():
     """returns uniformly-distributed random unit quaternion for sampling orientations"""
     s = random.random()

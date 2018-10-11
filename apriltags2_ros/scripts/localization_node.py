@@ -31,8 +31,6 @@ class TagMonitor(object):
 
     def callback(self, msg):
 
-        position_cam_wf_list = []
-        orientation_cam_wf_list = []
         all_measurements = []
 
         transforms = []
@@ -50,39 +48,24 @@ class TagMonitor(object):
             qz = tag.pose.pose.pose.orientation.z
             qw = tag.pose.pose.pose.orientation.w
 
-            #print "position" + str(x) + str(y) + str(z)
-            #print "orientation" + str(qx) + ' ' + str(qy) + ' ' +str(qz) + ' ' + str(qw)
-            """
-            # publish camera pose (in tag frame) for rviz
-            # doesn't work yet
-            msg = geometry_msgs.msg.TransformStamped()
-            msg.header = u.make_header(("Tag" + str(tag_id)))
-            msg.child_frame_id = "Pose_Tag" + str(tag_id)
-            msg.transform.translation.x = -x
-            msg.transform.translation.y = -y
-            msg.transform.translation.z = -z
-
-            # the right format seems to be: x, y, z, w
-            msg.transform.rotation.x = qy
-            msg.transform.rotation.y = qz
-            msg.transform.rotation.z = qw
-            msg.transform.rotation.w = qx
-            transforms.append(msg)
-            """
             # transform pose into world frame
-            # todo: DOESNT WORK YET
             dist_cam_tag = np.array([[x], [y], [z]])
-
-            quat_cam_tag = Quaternion(qx, qy, qz, qw)
-            #print dist_cam_tag
-            #print quat_cam_tag
-
+            quat_cam_tag = Quaternion(qw, qx, qy, qz)
             position_cam_wf = Tag_list[tag_id].convert_location_to_wf(quat_cam_tag, dist_cam_tag)
-            # print position_cam_wf
-            position_cam_wf_list.append(position_cam_wf)
             orientation_cam_wf = Tag_list[tag_id].convert_orientation_to_wf(quat_cam_tag)
-            # print orientation_cam_wf
-            orientation_cam_wf_list.append(orientation_cam_wf)
+
+            # publish "measured" camera pose (in world frame) for this tag
+            msg = geometry_msgs.msg.TransformStamped()
+            msg.header = u.make_header("map")
+            msg.child_frame_id = "Pose_Tag" + str(tag_id)
+            msg.transform.translation.x = position_cam_wf[0]
+            msg.transform.translation.y = position_cam_wf[1]
+            msg.transform.translation.z = position_cam_wf[2]
+            msg.transform.rotation.x = orientation_cam_wf[1]
+            msg.transform.rotation.y = orientation_cam_wf[2]
+            msg.transform.rotation.z = orientation_cam_wf[3]
+            msg.transform.rotation.w = orientation_cam_wf[0]
+            transforms.append(msg)
 
             measurement = []
             measurement.append(position_cam_wf[0])
