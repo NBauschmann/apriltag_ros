@@ -3,8 +3,6 @@ import numpy as np
 import math
 
 from pyquaternion import Quaternion
-#from aprilslam.msg import Apriltags
-
 
 class Tag(object):
 
@@ -23,7 +21,6 @@ class Tag(object):
         return self.__orientation_wf
 
     def convert_location_to_wf(self, quat_cam_tag_x, dist_cam_tag_x):
-        # it definitely makes a difference whether we use quat_cam_tag_x or the conjugate!
         # for now, this seems to work:
         dist_cam_tag_tf = quat_cam_tag_x.conjugate.rotate(dist_cam_tag_x)
         dist_cam_tag_wf = self.__orientation_wf.rotate(dist_cam_tag_tf)

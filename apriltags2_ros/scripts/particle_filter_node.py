@@ -119,8 +119,8 @@ class Boat(object):
 
         # for the future: to have the most realistic behaviour first change orientation, then move forward (in direction of z axis of camera frame)
 
-        # to make sure to stay in tank:
-        # works but probably not the best solution (not gaussian anymore)
+        # to make sure to stay in tank todo: is that necessary?
+        # works but not the best solution (not gaussian anymore) and probably incredibly slow
         if noisy:
             # adding noise to position
             a = random.gauss(0.0, self.__move_noise)
@@ -160,15 +160,13 @@ class Boat(object):
         return res
 
     def sense(self, tags, noisy=False):
-        """
-
-        """
+        """taking a measurement for each tag, measurement is the position of the camera in world frame"""
         measured_tags = []
 
         for i in range(len(tags)):
 
             if noisy:  # for simulation
-                # orientation not noise yet
+                # orientation not noisy yet
                 measurement = [tags[i].get_id(), self.__x + random.gauss(0.0, self.__sense_noise),
                                self.__y + random.gauss(0.0, self.__sense_noise),
                                self.__z + random.gauss(0.0, self.__sense_noise)]#, self.__orientation]
@@ -184,14 +182,16 @@ class Boat(object):
         """calculate measurement probability given state of particle (x, y, z)"""
 
         seen_tag_ids = []
-
+        # get ids of seen tags
         for ind in range(len(measurements)):
             seen_tag_ids.append(measurements[ind][0])
 
+        # get all predicted measurements (all tags) for this particle
         predicted_measurement_all = self.sense(tags, noisy=False)
 
         predicted_measurement = []
 
+        # only use measurements of actually seen tags
         for ind in range(len(predicted_measurement_all)):
             for id in seen_tag_ids:
                 if predicted_measurement_all[ind][0] == id:
@@ -205,7 +205,6 @@ class Boat(object):
                 q_dist = Quaternion.absolute_distance(predicted_measurement[ind][4], measurements[ind][4])
                 q_dist_list.append(q_dist)
         """
-        # print q_dist_list
 
         # resizing necessary
         len_meas = len(measurements)
@@ -281,11 +280,8 @@ class ParticleFilter(object):
         self.__particles = particles2
 
         if len(msg.poses) > 0:
-
             # weight particles according to how likely the measurement would be
             weights = []
-            # n = 1
-
             for i in range(numP):
                 weight = self.__particles[i].measurement_prob(measurements, tags)
                 weights.append(weight)
@@ -311,6 +307,8 @@ class ParticleFilter(object):
         else:
             print("No new Measurement")
 
+        # calculate mean position of particles
+        # todo: there's probably a better way of determining the estimated_pose
         all_x = []
         all_y = []
         all_z = []
@@ -326,7 +324,6 @@ class ParticleFilter(object):
         # rospy.loginfo('seen_tag_id: {}, x_mean: {}'.format(tag_id, x_mean))
 
         # publish estimated pose
-
         # as PoseStamped()
         pub_pose = PoseStamped()
         pub_pose.header = u.make_header("map")
@@ -335,19 +332,20 @@ class ParticleFilter(object):
         pub_pose.pose.position.z = z_mean
         self.__pub.publish(pub_pose)
 
-        # as PointStamped()
-        pub_2 = PointStamped()
-        pub_2.header = u.make_header("map")
-        pub_2.point.x = x_mean
-        pub_2.point.y = y_mean
-        pub_2.point.z = z_mean
-        self.__pub2.publish(pub_2)
+        if se.use_rviz:
+            # as PointStamped() (only used for rviz)
+            pub_2 = PointStamped()
+            pub_2.header = u.make_header("map")
+            pub_2.point.x = x_mean
+            pub_2.point.y = y_mean
+            pub_2.point.z = z_mean
+            self.__pub2.publish(pub_2)
 
-        # publish particles as PoseArray()
-        pub3 = PoseArray()
-        pub3.header = u.make_header("map")
-        pub3.poses = self.particles_to_poses(self.__particles)
-        self.__pub3.publish(pub3)
+            # publish particles as PoseArray() (only used for rviz)
+            pub3 = PoseArray()
+            pub3.header = u.make_header("map")
+            pub3.poses = self.particles_to_poses(self.__particles)
+            self.__pub3.publish(pub3)
 
 
 def main():

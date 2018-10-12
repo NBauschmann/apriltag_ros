@@ -21,7 +21,7 @@ from apriltags2_ros.msg import HippoPoses
 # todo: move this to settings as well
 Tag_list = se.tags
 
-# add more tags in tags_file.py
+# add more tags or change parameters in settings.py
 
 
 class TagMonitor(object):
@@ -35,10 +35,9 @@ class TagMonitor(object):
 
         transforms = []
 
-        # get information from published message apriltags
+        # get data from topic /tag_detections
         for tag in msg.detections:
 
-            # get data from tag_detections
             tag_id = int(tag.id[0])
             x = tag.pose.pose.pose.position.x
             y = tag.pose.pose.pose.position.y
@@ -55,17 +54,19 @@ class TagMonitor(object):
             orientation_cam_wf = Tag_list[tag_id].convert_orientation_to_wf(quat_cam_tag)
 
             # publish "measured by this tag" camera pose (in world frame) as transform
-            msg = geometry_msgs.msg.TransformStamped()
-            msg.header = u.make_header("map")
-            msg.child_frame_id = "Pose_Tag" + str(tag_id)
-            msg.transform.translation.x = position_cam_wf[0]
-            msg.transform.translation.y = position_cam_wf[1]
-            msg.transform.translation.z = position_cam_wf[2]
-            msg.transform.rotation.x = orientation_cam_wf[1]
-            msg.transform.rotation.y = orientation_cam_wf[2]
-            msg.transform.rotation.z = orientation_cam_wf[3]
-            msg.transform.rotation.w = orientation_cam_wf[0]
-            transforms.append(msg)
+            if se.use_rviz:
+
+                msg = geometry_msgs.msg.TransformStamped()
+                msg.header = u.make_header("map")
+                msg.child_frame_id = "Pose_Tag" + str(tag_id)
+                msg.transform.translation.x = position_cam_wf[0]
+                msg.transform.translation.y = position_cam_wf[1]
+                msg.transform.translation.z = position_cam_wf[2]
+                msg.transform.rotation.x = orientation_cam_wf[1]
+                msg.transform.rotation.y = orientation_cam_wf[2]
+                msg.transform.rotation.z = orientation_cam_wf[3]
+                msg.transform.rotation.w = orientation_cam_wf[0]
+                transforms.append(msg)
 
             measurement = []
             measurement.append(position_cam_wf[0])
@@ -80,7 +81,8 @@ class TagMonitor(object):
             all_measurements.append(measurement)
 
         # publish transforms
-        self.__br.sendTransform(transforms)
+        if se.use_rviz:
+            self.__br.sendTransform(transforms)
 
         # publish calculated poses
         hps = HippoPoses()
@@ -88,20 +90,16 @@ class TagMonitor(object):
 
         for measurement in all_measurements:
 
-            pub_position = np.array([[measurement[0]], [measurement[1]], [measurement[2]]])
-            pub_orientation = np.array([[measurement[3]], [measurement[4]], [measurement[5]], [measurement[6]]])
-            pub_id = measurement[7]
-
             hp = HippoPose()
 
-            hp.id = pub_id
-            hp.pose.position.x = pub_position[0]
-            hp.pose.position.y = pub_position[1]
-            hp.pose.position.z = pub_position[2]
-            hp.pose.orientation.x = pub_orientation[0]
-            hp.pose.orientation.y = pub_orientation[1]
-            hp.pose.orientation.z = pub_orientation[2]
-            hp.pose.orientation.w = pub_orientation[3]
+            hp.id = measurement[7]
+            hp.pose.position.x = measurement[0]
+            hp.pose.position.y = measurement[1]
+            hp.pose.position.z = measurement[2]
+            hp.pose.orientation.x = measurement[0]
+            hp.pose.orientation.y = measurement[1]
+            hp.pose.orientation.z = measurement[2]
+            hp.pose.orientation.w = measurement[3]
 
             measurements_poses.append(hp)
 

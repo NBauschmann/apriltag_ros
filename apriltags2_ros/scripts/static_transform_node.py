@@ -2,7 +2,6 @@
 
 import rospy
 from pyquaternion import Quaternion
-
 import settings as se
 import utils as u
 import tf_conversions
@@ -19,13 +18,15 @@ if __name__ == '__main__':
     transforms = []
 
     for counter, tag in enumerate(tags):
+
         msg = geometry_msgs.msg.TransformStamped()
         msg.header = u.make_header("map")
         msg.child_frame_id = "Tag" + str(counter)
+
         msg.transform.translation.x = tag.get_position_wf()[0]
         msg.transform.translation.y = tag.get_position_wf()[1]
         msg.transform.translation.z = tag.get_position_wf()[2]
-        # the right format seems to be: x, y, z, w
+
         msg.transform.rotation.x = tag.get_orientation_wf()[1]
         msg.transform.rotation.y = tag.get_orientation_wf()[2]
         msg.transform.rotation.z = tag.get_orientation_wf()[3]

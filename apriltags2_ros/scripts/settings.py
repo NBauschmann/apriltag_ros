@@ -6,12 +6,16 @@ import tag_class as tc
 
 
 """
-This file is for setting the position and orientation of each tag in the tank 
-(in world frame), tank measurements for particle filter
-and any other parameters needed to avoid setting them in each node separately.
+This file is for setting any parameters for the particle 
+filter and the position and orientation of the tags.
 
+todo: move NumV here as well
 """
-# Particle filter parameters
+
+""" Particle filter parameters """
+
+# Publish transforms and particles for Rviz
+use_rviz = True
 
 # Number of particles
 numP = 200
@@ -32,8 +36,9 @@ tank_size_y = 2.0
 tank_size_z = 1.5
 
 
-"""
+""" Tag positions and orientations inside the tank """
 
+"""
 frames: 
        - world/map frame: north, east, down, origin in corner 
          between wall 3 and 4 (defined below)
@@ -50,7 +55,7 @@ rotation from world frame (wf) to tag frame (tf) according to wall
 
 for wall closest to big windows (wall 1): q1 = 0.5 - 0.5i - 0.5j + 0.5k
 for wall closest to wave tank (wall 2): q2 = 0 + 0i - 0.707107j + 0.707107k
-for wall closest to computers (wall 3): q3 = 0,5 - 0,5i + 0,5j - 0,5k 
+for wall closest to computers (wall 3): q3 = 0.5 - 0.5i + 0.5j - 0.5k 
 for wall closest to stairs (wall 4): q4 = 0.707107 - 0.707107i + 0j + 0k
 calculated below
 """
@@ -75,20 +80,19 @@ tag_w4_orientation = Quaternion(matrix=rotation_w4)
 
 """
 Create object of class Tag for every used tag 
-Position need to be [meter]
+Position needs to be [m]
 
 Add Tags in list tags at the bottom
 """
 
-#Tag_1 = tc.Tag(1, np.array([4.383, 0.512, 0.0]), tag_w1_orientation)
-#Tag_2 = tc.Tag(2, np.array([4.383, 1.477, 0.0]), tag_w1_orientation)
+# Tag_1 = tc.Tag(1, np.array([4.383, 0.512, 0.0]), tag_w1_orientation)
+# Tag_2 = tc.Tag(2, np.array([4.383, 1.477, 0.0]), tag_w1_orientation)
+
 Tag_0 = tc.Tag(0, np.array([4.0, 1.0, 0.5]), tag_w1_orientation)
 Tag_1 = tc.Tag(1, np.array([4.0, 1.0, 0.2]), tag_w1_orientation)
 Tag_2 = tc.Tag(2, np.array([4.0, 1.3, 0.5]), tag_w1_orientation)
-
 Tag_3 = tc.Tag(3, np.array([1.0, 0.0, 0.5]), tag_w4_orientation)
 Tag_4 = tc.Tag(4, np.array([2.0, 2.0, 0.75]), tag_w2_orientation)
 
-#Tag_4 = tc.Tag(4, np.array([1.0, 1.0, 1.0]), Quaternion(1.0, 0, 0, 0))
 
 tags = [Tag_0, Tag_1, Tag_2, Tag_3, Tag_4]
