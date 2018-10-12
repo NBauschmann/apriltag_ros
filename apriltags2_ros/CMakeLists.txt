@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(apriltags2_ros)
 
+# added rospy
 find_package(catkin REQUIRED COMPONENTS
   apriltags2
   geometry_msgs
@@ -12,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   tf
   cmake_modules
+  rospy
 )
 
 find_package(Eigen REQUIRED)
@@ -41,6 +43,8 @@ add_message_files(
   FILES
   AprilTagDetectionArray.msg
   AprilTagDetection.msg
+  HippoPose.msg
+  HippoPoses.msg
 )
 
 add_service_files(
