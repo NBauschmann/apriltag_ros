@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(apriltags2_ros)
 
+# added rospy
 find_package(catkin REQUIRED COMPONENTS
   apriltags2
   geometry_msgs

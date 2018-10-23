@@ -244,10 +244,11 @@ class Boat(object):
 
 
 class ParticleFilter(object):
-    def __init__(self, pub, pub2, pub3, particles):
+    def __init__(self, pub, pub2, pub3, pub4, particles):
         self.__pub = pub
         self.__pub2 = pub2
         self.__pub3 = pub3
+        self.__pub4 = pub4
         self.__particles = particles
         self.__message = []
 
@@ -332,8 +333,21 @@ class ParticleFilter(object):
         pub_pose.pose.position.z = z_mean
         self.__pub.publish(pub_pose)
 
+        # publish estimated pose to /mavros/vision_pose/pose
+        # expects to get coordinates in ENU, so need to change this
+        pub_mav_pose = PoseStamped()
+        pub_mav_pose.header = u.make_header("map")    # not sure what header is needed
+        pub_mav_pose.pose.position.x = y_mean
+        pub_mav_pose.pose.position.y = x_mean
+        pub_mav_pose.pose.position.z = - z_mean
+        self.__pub4.publish(pub_mav_pose)
+        # without changing:
+        # self.__pub4.publish(pub_pose)
+
         if se.use_rviz:
+            # publish estimated pose to rviz
             # as PointStamped() (only used for rviz)
+            # not really needed todo: get rid of this
             pub_2 = PointStamped()
             pub_2.header = u.make_header("map")
             pub_2.point.x = x_mean
@@ -352,7 +366,7 @@ def main():
 
     particles = []
     # create random particles (numP = number of particles)
-    # move_noise determines how much particles move each iteration during update atm
+    # move_noise determines how much particles move during update each iteration  atm
     for i in range(numP):
         particle = Boat()
         particle.set_noise(se.particle_sense_noise, se.particle_move_noise, se.particle_turn_noise)
@@ -363,10 +377,9 @@ def main():
     pub = rospy.Publisher('estimated_pose', PoseStamped, queue_size=1)
     pub2 = rospy.Publisher('estimated_position', PointStamped, queue_size=1)
     pub3 = rospy.Publisher('particle_poses', PoseArray, queue_size=1)
-    particle_filter = ParticleFilter(pub, pub2, pub3, particles)
+    pub4 = rospy.Publisher('/mavros/vision_pose/pose', PoseStamped, queue_size=1)
+    particle_filter = ParticleFilter(pub, pub2, pub3, pub4, particles)
     rospy.Subscriber("/hippo_poses", HippoPoses, particle_filter.callback, queue_size=1)
-
-    # rospy.loginfo('counter: {}'.format(counter))
 
     while not rospy.is_shutdown():
         pass
