@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   tf
   cmake_modules
+  rospy
 )
 
 find_package(Eigen REQUIRED)
@@ -41,6 +42,8 @@ add_message_files(
   FILES
   AprilTagDetectionArray.msg
   AprilTagDetection.msg
+  HippoPose.msg
+  HippoPoses.msg
 )
 
 add_service_files(
