@@ -78,7 +78,7 @@ class SetpointPosition:
 
 def setpoint_demo():
     rospy.init_node('setpoint_position')
-    mavros.set_namespace()  # initialize mavros module with default namespace, warum ist das nötig?
+    mavros.set_namespace()  # initialize mavros module with default namespace, warum ist das noetig?
     rate = rospy.Rate(10)
 
     setpoint = SetpointPosition()
