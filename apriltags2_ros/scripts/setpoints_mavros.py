@@ -42,12 +42,14 @@ class SetpointPosition:
         )
 
         while not rospy.is_shutdown():
-            msg.pose.position.x = self.x
-            msg.pose.position.x = self.y
-            msg.pose.position.x = self.z
+            #msg.pose.position.x = self.y
+            #msg.pose.position.y = self.x
+            #msg.pose.position.z = - self.z
 
-            # kann ich Orientierung hier weglassen
-            # und nur Position vorgeben?
+            msg.pose.position.x = self.x
+            print self.x
+            msg.pose.position.y = self.y
+            msg.pose.position.z = self.z
 
             self.pub.publish(msg)
             rate.sleep()
@@ -69,7 +71,7 @@ class SetpointPosition:
         def is_near(msg, x, y):
             rospy.logdebug("Position %s: local: %d, target: %d, abs diff: %d",
                            msg, x, y, abs(x - y))
-            return abs(x - y) < 0.5   # wo wird geguckt, ob kleiner 0.5 ?
+            return abs(x - y) < 0.1
 
         if is_near('X', topic.pose.position.x, self.x) and is_near('Y', topic.pose.position.y, self.y) and is_near('Z', topic.pose.position.z, self.z):
             self.done = True
@@ -84,7 +86,7 @@ def setpoint_demo():
     setpoint = SetpointPosition()
 
     rospy.loginfo("move forward")
-    setpoint.set(3.0, 1.0, 1.0, 0)
+    setpoint.set(2.9, 0.850, 0.9, 0)
     setpoint.set(3.5, 1.0, 1.0, 0)
 
     rospy.loginfo("Bye!")
