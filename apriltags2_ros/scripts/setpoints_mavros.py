@@ -47,7 +47,6 @@ class SetpointPosition:
             #msg.pose.position.z = - self.z
 
             msg.pose.position.x = self.x
-            print self.x
             msg.pose.position.y = self.y
             msg.pose.position.z = self.z
 
@@ -71,11 +70,14 @@ class SetpointPosition:
         def is_near(msg, x, y):
             rospy.logdebug("Position %s: local: %d, target: %d, abs diff: %d",
                            msg, x, y, abs(x - y))
-            return abs(x - y) < 0.1
-
+            #print x, y 
+	    #print abs(x - y) 
+            return abs(x - y) < 0.2
+	#print topic.pose.position.x
         if is_near('X', topic.pose.position.x, self.x) and is_near('Y', topic.pose.position.y, self.y) and is_near('Z', topic.pose.position.z, self.z):
             self.done = True
             self.done_evt.set()
+	    rospy.loginfo("setpoint reached!")
 
 
 def setpoint_demo():
@@ -86,8 +88,10 @@ def setpoint_demo():
     setpoint = SetpointPosition()
 
     rospy.loginfo("move forward")
-    setpoint.set(2.9, 0.850, 0.9, 0)
-    setpoint.set(3.5, 1.0, 1.0, 0)
+    setpoint.set(0.5, 1.0, -1.14, 0)
+    setpoint.set(0.5, 1.5, -1.14, 0)
+    setpoint.set(0.5, 2.0, -1.14, 0)  #desired position in ENU
+    setpoint.set(0.5, 2.5, -1.14, 0)
 
     rospy.loginfo("Bye!")
 
