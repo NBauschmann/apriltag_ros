@@ -18,7 +18,7 @@ todo: move NumV here as well
 use_rviz = True
 
 # Number of particles
-numP = 150
+numP = 500
 
 # Noise parameters
 particle_sense_noise = 0
@@ -99,28 +99,70 @@ Tag_7 = tc.Tag(7, np.array([1.39, -0.152, 1.118]), tag_w4_orientation)
 Tag_8 = tc.Tag(8, np.array([3.43, 2.15, 1.12]), tag_w2_orientation)
 """
 
-# Tags im Flur
-"""
-Tag_0 = tc.Tag(0, np.array([2.61, 0.0, 0.645]), tag_w4_orientation)
-Tag_1 = tc.Tag(1, np.array([3.315, -0.152, 0.705]), tag_w4_orientation)
-Tag_2 = tc.Tag(2, np.array([4.0, 0.18, 0.52]), tag_w1_orientation)
-Tag_3 = tc.Tag(3, np.array([4.0, 0.77, 0.685]), tag_w1_orientation)
-Tag_4 = tc.Tag(4, np.array([3.55, 2.15, 0.695]), tag_w2_orientation)
-Tag_5 = tc.Tag(5, np.array([3.025, 2.15, 0.77]), tag_w2_orientation)
-Tag_6 = tc.Tag(6, np.array([2.6, 2.0, 0.615]), tag_w2_orientation)
-Tag_7 = tc.Tag(7, np.array([2.15, 2.15, 0.78]), tag_w2_orientation)
-Tag_8 = tc.Tag(8, np.array([1.75, 2.15, 0.82]), tag_w2_orientation)
-Tag_9 = tc.Tag(9, np.array([1.875, -0.15, 0.75]), tag_w4_orientation)
-Tag_10 = tc.Tag(10, np.array([1.385, -0.15, 0.805]), tag_w4_orientation)
-Tag_11 = tc.Tag(11, np.array([0.71, -0.15, 0.655]), tag_w4_orientation)
-Tag_12 = tc.Tag(12, np.array([1.25, 2.15, 0.715]), tag_w2_orientation)
-Tag_13 = tc.Tag(13, np.array([0.6, 2.15, 0.7]), tag_w2_orientation)
-Tag_14 = tc.Tag(14, np.array([0.0, 1.4, 0.78]), tag_w3_orientation)
-Tag_15 = tc.Tag(15, np.array([0.0, 0.6, 0.8]), tag_w3_orientation) 
-"""
+# Tags Baenke
 
-#tags = [Tag_0, Tag_1, Tag_2, Tag_3, Tag_4, Tag_5, Tag_6, Tag_7, Tag_8, Tag_9, Tag_10, Tag_11, Tag_12, Tag_13, Tag_14, Tag_15]
+#laenge stangen nr
+l1 = 1.76 
+l2 = 1.98
+l3 = 1.98
+l4 = 1.49
+l5 = 1.98
+l6 = 1.98
 
+
+#offset stange nr
+s1 = 0.16
+s2 = 0
+s3 = 0 # abstand zwischen 2 und 3
+s4 = 0.25
+s5 = 0 # abstand zwischen 5 und 6
+s6 = 0
+
+#anbringtiefe stangen
+d = 1.0
+
+Tag_0 = tc.Tag(0, np.array([0.0, 0.4 + s1, d]), tag_w3_orientation)
+Tag_1 = tc.Tag(1, np.array([0.0, 0.85 + s1, d]), tag_w3_orientation)
+Tag_2 = tc.Tag(2, np.array([0.0, 1.35 + s1, d]), tag_w3_orientation)
+Tag_3 = tc.Tag(3, np.array([0.8 + s2, 0.0, d]), tag_w4_orientation)
+Tag_4 = tc.Tag(4, np.array([1.6 + s2, 0.0, d]), tag_w4_orientation)
+Tag_5 = tc.Tag(5, np.array([0.4 + l2 + s2 + s3, 0.0, d]), tag_w4_orientation)
+Tag_6 = tc.Tag(6, np.array([0.9 + l2 + s2 + s3, 0.0, d]), tag_w4_orientation)
+Tag_7 = tc.Tag(7, np.array([4.0, 0.3 + s4, d]), tag_w1_orientation)
+Tag_8 = tc.Tag(8, np.array([4.0, 0.8 + s4, d]), tag_w1_orientation)
+Tag_9 = tc.Tag(9, np.array([4.0, 1.3 + s4, d]), tag_w1_orientation)
+Tag_10 = tc.Tag(10, np.array([1.2 + l6 + s6 + s5, 2.0, d]), tag_w2_orientation)
+Tag_11 = tc.Tag(11, np.array([0.4 + l6 + s6 + s5, 2.0, d]), tag_w2_orientation)
+Tag_12 = tc.Tag(12, np.array([1.6 + s6, 2.0, d]), tag_w2_orientation)
+Tag_13 = tc.Tag(13, np.array([0.8 + s6, 2.0, d]), tag_w2_orientation) 
+#not used from here
+Tag_14 = tc.Tag(14, np.array([0.0, 0.0, 0.0]), tag_w1_orientation)
+Tag_15 = tc.Tag(15, np.array([0.0, 0.0, 0.0]), tag_w1_orientation) 
+Tag_16 = tc.Tag(16, np.array([0.0, 0.0, 0.0]), tag_w1_orientation)
+Tag_17 = tc.Tag(17, np.array([0.0, 0.0, 0.0]), tag_w1_orientation)
+Tag_18 = tc.Tag(18, np.array([0.0, 0.0, 0.0]), tag_w1_orientation)
+Tag_19 = tc.Tag(19, np.array([0.0, 0.0, 0.0]), tag_w1_orientation)
+# small tags
+Tag_20 = tc.Tag(20, np.array([0.0, 1.08 + s1, d]), tag_w3_orientation)
+Tag_21 = tc.Tag(21, np.array([0.0, 0.63 + s1, d]), tag_w3_orientation)
+Tag_22 = tc.Tag(22, np.array([1.1 + s2, 0.0, d]), tag_w4_orientation)
+Tag_23 = tc.Tag(23, np.array([1.3 + s2, 0.0, d]), tag_w4_orientation)
+Tag_24 = tc.Tag(24, np.array([1.9 + s2, 0.0, d]), tag_w4_orientation)
+Tag_25 = tc.Tag(25, np.array([0.1 + l2 + s2 + s3, 0.0, d]), tag_w4_orientation)
+Tag_26 = tc.Tag(26, np.array([0.7 + l2 + s2 + s3, 0.0, d]), tag_w4_orientation)
+Tag_27 = tc.Tag(27, np.array([0.9 + l2 + s2 + s3, 0.0, d]), tag_w4_orientation)
+Tag_28 = tc.Tag(28, np.array([4.0, 0.55 + s4, d]), tag_w1_orientation)
+Tag_29 = tc.Tag(29, np.array([4.0, 1.05 + s4, d]), tag_w1_orientation)
+Tag_30 = tc.Tag(30, np.array([0.9 + l6 + s6 + s5, 2.0, d]), tag_w2_orientation)
+Tag_31 = tc.Tag(31, np.array([0.7 + l6 + s6 + s5, 2.0, d]), tag_w2_orientation)
+Tag_32 = tc.Tag(32, np.array([0.1 + l6 + s6 + s5, 2.0, d]), tag_w2_orientation)
+Tag_33 = tc.Tag(33, np.array([1.9 + s6, 2.0, d]), tag_w2_orientation)
+Tag_34 = tc.Tag(34, np.array([1.3 + s6, 2.0, d]), tag_w2_orientation)
+Tag_35 = tc.Tag(35, np.array([1.1 + s6, 2.0, d]), tag_w2_orientation)
+
+tags = [Tag_0, Tag_1, Tag_2, Tag_3, Tag_4, Tag_5, Tag_6, Tag_7, Tag_8, Tag_9, Tag_10, Tag_11, Tag_12, Tag_13, Tag_14, Tag_15, Tag_16, Tag_17, Tag_18, Tag_19, Tag_20, Tag_21, Tag_22, Tag_23, Tag_24, Tag_25, Tag_26, Tag_27, Tag_28, Tag_29, Tag_30, Tag_31, Tag_32, Tag_33, Tag_34, Tag_35]
+
+"""
 # Tags im Tank
 Tag_0 = tc.Tag(0, np.array([0, 0 ,0]), tag_w1_orientation) # not used
 Tag_1 = tc.Tag(1, np.array([0, 0, 0]), tag_w1_orientation)  # not used
@@ -141,3 +183,4 @@ Tag_15 = tc.Tag(15, np.array([0.0, 1.0, 0.48]), tag_w3_orientation)
 Tag_16 = tc.Tag(16, np.array([0.0, 0.6, 0.48]), tag_w3_orientation)
 
 tags = [Tag_0, Tag_1, Tag_2, Tag_3, Tag_4, Tag_5, Tag_6, Tag_7, Tag_8, Tag_9, Tag_10, Tag_11, Tag_12, Tag_13, Tag_14, Tag_15, Tag_16]
+"""
