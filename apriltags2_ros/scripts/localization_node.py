@@ -50,23 +50,9 @@ class TagMonitor(object):
             # transform pose into world frame
             dist_cam_tag = np.array([[x], [y], [z]])
             quat_cam_tag = Quaternion(qw, qx, qy, qz)
-            S_ct = quat_cam_tag.rotation_matrix
-            print 'S_ct ' + str(S_ct)
-            print 'dist_ct_c' + str(dist_cam_tag)
-            dist_ct_t = np.dot(S_ct, dist_cam_tag)
-            print 'dist_ct_t' + str(dist_ct_t)
-            S_wt = Tag_list[tag_id].get_orientation_wf().rotation_matrix
-            print 'S_wt ' + str(S_wt)
-            dist_ct_w = np.dot(S_wt, dist_ct_t)
-            print 'dist_ct_w ' + str(dist_ct_w)
-            #position_cam_wf = Tag_list[tag_id].convert_location_to_wf(quat_cam_tag, dist_cam_tag)
+            position_cam_wf = Tag_list[tag_id].convert_location_to_wf(quat_cam_tag, dist_cam_tag)
             orientation_cam_wf = Tag_list[tag_id].convert_orientation_to_wf(quat_cam_tag)
-            position_cam_wf = dist_ct_w
-            # test
-            #orientation = np.dot(R_wt, R_ct)
-            #print 'R_wt * R_ct' + str(orientation)
-            #print 'resulting quat ' + str(Quaternion(matrix=orientation))
-            #print 'conjugated quat ' + str(Quaternion(matrix=orientation).conjugate)
+
             # publish "measured by this tag" camera pose (in world frame) as transform
             if se.use_rviz:
 
@@ -76,10 +62,10 @@ class TagMonitor(object):
                 msg.transform.translation.x = position_cam_wf[0]
                 msg.transform.translation.y = position_cam_wf[1]
                 msg.transform.translation.z = position_cam_wf[2]
-                #msg.transform.rotation.x = orientation_cam_wf[1]
-                #msg.transform.rotation.y = orientation_cam_wf[2]
-                #msg.transform.rotation.z = orientation_cam_wf[3]
-                #msg.transform.rotation.w = orientation_cam_wf[0]
+                msg.transform.rotation.x = orientation_cam_wf[1]
+                msg.transform.rotation.y = orientation_cam_wf[2]
+                msg.transform.rotation.z = orientation_cam_wf[3]
+                msg.transform.rotation.w = orientation_cam_wf[0]
                 transforms.append(msg)
 
             measurement = []
