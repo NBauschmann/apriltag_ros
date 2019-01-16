@@ -96,9 +96,9 @@ class TagMonitor(object):
             hp.pose.position.x = measurement[0]
             hp.pose.position.y = measurement[1]
             hp.pose.position.z = measurement[2]
-            hp.pose.orientation.x = measurement[0]
-            hp.pose.orientation.y = measurement[1]
-            hp.pose.orientation.z = measurement[2]
+            hp.pose.orientation.x = measurement[4]
+            hp.pose.orientation.y = measurement[5]
+            hp.pose.orientation.z = measurement[6]
             hp.pose.orientation.w = measurement[3]
 
             measurements_poses.append(hp)

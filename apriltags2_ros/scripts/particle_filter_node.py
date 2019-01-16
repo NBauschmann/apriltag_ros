@@ -197,6 +197,7 @@ class Boat(object):
                 if predicted_measurement_all[ind][0] == id:
                     predicted_measurement.append(predicted_measurement_all[ind])
 
+        # print predicted_measurement_all
         """
         if meas_type == 2:
             q_dist_list = []
@@ -239,7 +240,7 @@ class Boat(object):
         # weight of particles
         weight = multivariate_normal.pdf(predicted_measurement_resized, mean=measurements_resized, cov=cov_matrix)
 
-        # print weight
+        #print weight
         return weight
 
 
