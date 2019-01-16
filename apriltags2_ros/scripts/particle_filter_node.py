@@ -33,7 +33,8 @@ actual measurements (distance and orientation from camera to tag).
 cam_orientation = Quaternion(0.5, 0.5, 0.5, 0.5)  # quaternion for camera facing wall with big windows
 
 # number of measured variables per measurement:
-numV = 4  # tag_id, x, y, z
+#numV = 4  # tag_id, x, y, z
+numV = 3  # x, y, z
 
 # number of particles used
 numP = 200
@@ -213,22 +214,37 @@ class Boat(object):
         # numV = number of variables per measurement, defined at the top
         a = np.zeros((len_meas, numV))
         for ind in range(len(measurements)):
+            """
+            # including id
             a[ind][0] = measurements[ind][0]
             a[ind][1] = measurements[ind][1]
             a[ind][2] = measurements[ind][2]
             a[ind][3] = measurements[ind][3]
-            # if meas_type == 2:
-            #    a[ind][4] = 0
+            """
+
+            # without id
+            a[ind][0] = measurements[ind][1]
+            a[ind][1] = measurements[ind][2]
+            a[ind][2] = measurements[ind][3]
+
         measurements_resized = np.reshape(a, len_meas * numV)
 
         b = np.zeros((len_meas, numV))
         for ind in range(len(predicted_measurement)):
+            """
+            # including id
             b[ind][0] = predicted_measurement[ind][0]
             b[ind][1] = predicted_measurement[ind][1]
             b[ind][2] = predicted_measurement[ind][2]
             b[ind][3] = predicted_measurement[ind][3]
-            # if meas_type == 2:
-            #   b[ind][4] = q_dist_list[ind]
+            """
+
+            # without id
+            b[ind][0] = predicted_measurement[ind][1]
+            b[ind][1] = predicted_measurement[ind][2]
+            b[ind][2] = predicted_measurement[ind][3]
+            #print b
+
         predicted_measurement_resized = np.reshape(b, len_meas * numV)
 
         # covariance matrix (diagonal)
@@ -270,7 +286,6 @@ class ParticleFilter(object):
 
         for p in msg.poses:
             measurement = [p.id, p.pose.position.x, p.pose.position.y, p.pose.position.z]
-
             measurements.append(measurement)
 
         # move particles (so far only adding random noise, noise parameter: move_noise)
