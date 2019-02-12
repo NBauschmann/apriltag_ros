@@ -331,11 +331,12 @@ class ParticleFilter(object):
                 particles3.append(self.__particles[index])
             self.__particles = particles3
 
+
             # To publish orientation, a mean quaternion is calculated from all measured orientations
             # num_meas x 4 matrix, containing quaternions in rows, in order: w, x, y, z
             quaternions_mat = np.asarray(orientations)
 
-            average_quaternion = average_quaternions(quaternions_mat)  #  this is also in order: w, x, y, z
+            average_quaternion = average_quaternions(quaternions_mat)   # this is also in order: w, x, y, z
             # published further down
 
         # if len(msg.poses) = 0 -> no new measurements
@@ -366,10 +367,11 @@ class ParticleFilter(object):
         pub_pose.pose.position.x = x_mean
         pub_pose.pose.position.y = y_mean
         pub_pose.pose.position.z = z_mean
-        pub_pose.pose.orientation.x = average_quaternion[1]
-        pub_pose.pose.orientation.y = average_quaternion[2]
-        pub_pose.pose.orientation.z = average_quaternion[3]
-        pub_pose.pose.orientation.w = average_quaternion[0]
+        if average_quaternion:
+            pub_pose.pose.orientation.x = average_quaternion[1]
+            pub_pose.pose.orientation.y = average_quaternion[2]
+            pub_pose.pose.orientation.z = average_quaternion[3]
+            pub_pose.pose.orientation.w = average_quaternion[0]
         self.__pub.publish(pub_pose)
 
         # publish estimated pose to /mavros/vision_pose/pose
@@ -380,12 +382,13 @@ class ParticleFilter(object):
         pub_mav_pose.pose.position.x = y_mean
         pub_mav_pose.pose.position.y = x_mean
         pub_mav_pose.pose.position.z = - z_mean
-        # conversion from NED to ENU
-        # unklar ob richtig
-        pub_pose.pose.orientation.w = average_quaternion[1]
-        pub_pose.pose.orientation.x = average_quaternion[2]
-        pub_pose.pose.orientation.y = average_quaternion[3]
-        pub_pose.pose.orientation.z = average_quaternion[0]
+        if average_quaternion:
+            # conversion from NED to ENU
+            # Not sure if this is working (apparently: NED -> ENU: (w x y z) -> (y x -z w))
+            pub_pose.pose.orientation.w = average_quaternion[2]
+            pub_pose.pose.orientation.x = average_quaternion[1]
+            pub_pose.pose.orientation.y = - average_quaternion[3]
+            pub_pose.pose.orientation.z = average_quaternion[0]
 
         self.__pub4.publish(pub_mav_pose)
         # without changing to ENU:
