@@ -111,23 +111,23 @@ l6 = 1.98
 
 
 #offset stange nr
-s1 = 0.16
+s1 = 0.1
 s2 = 0
 s3 = 0 # abstand zwischen 2 und 3
-s4 = 0.25
+s4 = 0.15
 s5 = 0 # abstand zwischen 5 und 6
 s6 = 0
 
 #anbringtiefe stangen
 d = 1.0
 
-Tag_0 = tc.Tag(0, np.array([0.0, 0.4 + s1, d]), tag_w3_orientation)
+Tag_2 = tc.Tag(0, np.array([0.0, 0.4 + s1, d]), tag_w3_orientation)
 Tag_1 = tc.Tag(1, np.array([0.0, 0.85 + s1, d]), tag_w3_orientation)
-Tag_2 = tc.Tag(2, np.array([0.0, 1.35 + s1, d]), tag_w3_orientation)
+Tag_0 = tc.Tag(2, np.array([0.0, 1.35 + s1, d]), tag_w3_orientation)
 Tag_3 = tc.Tag(3, np.array([0.8 + s2, 0.0, d]), tag_w4_orientation)
 Tag_4 = tc.Tag(4, np.array([1.6 + s2, 0.0, d]), tag_w4_orientation)
 Tag_5 = tc.Tag(5, np.array([0.4 + l2 + s2 + s3, 0.0, d]), tag_w4_orientation)
-Tag_6 = tc.Tag(6, np.array([0.9 + l2 + s2 + s3, 0.0, d]), tag_w4_orientation)
+Tag_6 = tc.Tag(6, np.array([1.2 + l2 + s2 + s3, 0.0, d]), tag_w4_orientation)
 Tag_7 = tc.Tag(7, np.array([4.0, 0.3 + s4, d]), tag_w1_orientation)
 Tag_8 = tc.Tag(8, np.array([4.0, 0.8 + s4, d]), tag_w1_orientation)
 Tag_9 = tc.Tag(9, np.array([4.0, 1.3 + s4, d]), tag_w1_orientation)
