@@ -85,23 +85,9 @@ Position needs to be [m]
 Add Tags in list tags at the bottom
 """
 
-# Tag_1 = tc.Tag(1, np.array([4.383, 0.512, 0.0]), tag_w1_orientation)
-# Tag_2 = tc.Tag(2, np.array([4.383, 1.477, 0.0]), tag_w1_orientation)
-"""
-Tag_0 = tc.Tag(0, np.array([4.0, 1.0, 0.5]), tag_w1_orientation)
-Tag_1 = tc.Tag(1, np.array([4.0, 1.0, 0.2]), tag_w1_orientation)
-Tag_2 = tc.Tag(2, np.array([4.0, 1.3, 0.5]), tag_w1_orientation)
-Tag_3 = tc.Tag(3, np.array([4.0, 0.308, 1.14]), tag_w1_orientation)
-Tag_4 = tc.Tag(4, np.array([2.68, 0.0, 1.128]), tag_w4_orientation)
-Tag_5 = tc.Tag(5, np.array([2.64, 2.0, 1.236]), tag_w2_orientation)
-Tag_6 = tc.Tag(6, np.array([4.0, 0.773, 1.305]), tag_w1_orientation)
-Tag_7 = tc.Tag(7, np.array([1.39, -0.152, 1.118]), tag_w4_orientation)
-Tag_8 = tc.Tag(8, np.array([3.43, 2.15, 1.12]), tag_w2_orientation)
-"""
+# Tags an Stangen
 
-# Tags Baenke
-
-#laenge stangen nr
+# laenge stangen nr
 l1 = 1.76 
 l2 = 1.98
 l3 = 1.98
@@ -110,7 +96,7 @@ l5 = 1.98
 l6 = 1.98
 
 
-#offset stange nr
+# offset stange nr
 s1 = 0.16
 s2 = 0
 s3 = 0 # abstand zwischen 2 und 3
@@ -118,7 +104,7 @@ s4 = 0.25
 s5 = 0 # abstand zwischen 5 und 6
 s6 = 0
 
-#anbringtiefe stangen
+# anbringtiefe stangen
 d = 1.0
 
 
