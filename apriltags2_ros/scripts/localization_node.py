@@ -17,7 +17,6 @@ from apriltags2_ros.msg import AprilTagDetection
 from apriltags2_ros.msg import HippoPose
 from apriltags2_ros.msg import HippoPoses
 
-
 # todo: move this to settings as well
 Tag_list = se.tags
 

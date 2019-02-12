@@ -18,7 +18,7 @@ todo: move NumV here as well
 use_rviz = True
 
 # Number of particles
-numP = 500
+numP = 200
 
 # Noise parameters
 particle_sense_noise = 0
@@ -121,6 +121,18 @@ s6 = 0
 #anbringtiefe stangen
 d = 1.0
 
+
+# Tags for orientation test
+Tag_0 = tc.Tag(0, np.array([0.0, 1.8, 0.7]), tag_w3_orientation)
+Tag_1 = tc.Tag(1, np.array([0.0, 1.4, 0.7]), tag_w3_orientation)
+Tag_2 = tc.Tag(2, np.array([0.0, 1.0, 0.7]), tag_w3_orientation)
+
+tags = [Tag_0, Tag_1, Tag_2]
+
+
+"""
+# Used tags mounted in tank
+
 Tag_0 = tc.Tag(0, np.array([0.0, 0.4 + s1, d]), tag_w3_orientation)
 Tag_1 = tc.Tag(1, np.array([0.0, 0.85 + s1, d]), tag_w3_orientation)
 Tag_2 = tc.Tag(2, np.array([0.0, 1.35 + s1, d]), tag_w3_orientation)
@@ -161,26 +173,5 @@ Tag_34 = tc.Tag(34, np.array([1.3 + s6, 2.0, d]), tag_w2_orientation)
 Tag_35 = tc.Tag(35, np.array([1.1 + s6, 2.0, d]), tag_w2_orientation)
 
 tags = [Tag_0, Tag_1, Tag_2, Tag_3, Tag_4, Tag_5, Tag_6, Tag_7, Tag_8, Tag_9, Tag_10, Tag_11, Tag_12, Tag_13, Tag_14, Tag_15, Tag_16, Tag_17, Tag_18, Tag_19, Tag_20, Tag_21, Tag_22, Tag_23, Tag_24, Tag_25, Tag_26, Tag_27, Tag_28, Tag_29, Tag_30, Tag_31, Tag_32, Tag_33, Tag_34, Tag_35]
-
 """
-# Tags im Tank
-Tag_0 = tc.Tag(0, np.array([0, 0 ,0]), tag_w1_orientation) # not used
-Tag_1 = tc.Tag(1, np.array([0, 0, 0]), tag_w1_orientation)  # not used
-Tag_2 = tc.Tag(2, np.array([0, 0, 0]), tag_w1_orientation)  # not used -> not declared in tags.yaml
-Tag_3 = tc.Tag(3, np.array([0.8, 0, 0.48]), tag_w4_orientation)
-Tag_4 = tc.Tag(4, np.array([1.6, 0, 0.48]), tag_w4_orientation)
-Tag_5 = tc.Tag(5, np.array([2.4, 0, 0.48]), tag_w4_orientation)
-Tag_6 = tc.Tag(6, np.array([3.2, 0, 0.48]), tag_w4_orientation)
-Tag_7 = tc.Tag(7, np.array([4.0, 0.6, 0.48]), tag_w1_orientation)
-Tag_8 = tc.Tag(8, np.array([4.0, 1.0, 0.48]), tag_w1_orientation)
-Tag_9 = tc.Tag(9, np.array([4.0, 1.4, 0.48]), tag_w1_orientation)
-Tag_10 = tc.Tag(10, np.array([3.2, 2.0, 0.48]), tag_w2_orientation)
-Tag_11 = tc.Tag(11, np.array([2.4, 2.0, 0.48]), tag_w2_orientation)
-Tag_12 = tc.Tag(12, np.array([1.6, 2.0, 0.48]), tag_w2_orientation)
-Tag_13 = tc.Tag(13, np.array([0.8, 2.0, 0.48]), tag_w2_orientation)
-Tag_14 = tc.Tag(14, np.array([0.0, 1.4, 0.48]), tag_w3_orientation)
-Tag_15 = tc.Tag(15, np.array([0.0, 1.0, 0.48]), tag_w3_orientation)
-Tag_16 = tc.Tag(16, np.array([0.0, 0.6, 0.48]), tag_w3_orientation)
 
-tags = [Tag_0, Tag_1, Tag_2, Tag_3, Tag_4, Tag_5, Tag_6, Tag_7, Tag_8, Tag_9, Tag_10, Tag_11, Tag_12, Tag_13, Tag_14, Tag_15, Tag_16]
-"""

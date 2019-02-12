@@ -20,6 +20,8 @@ import utils as u
 from apriltags2_ros.msg import HippoPose
 from apriltags2_ros.msg import HippoPoses
 
+import numpy.matlib as npm   # for averaging quaternions function
+
 """
 Particle Filter 2
 
@@ -42,6 +44,7 @@ numP = 200
 # tags from settings, add more there
 tags = se.tags
 
+
 # not needed anymore
 def random_quaternion():
     """returns uniformly-distributed random unit quaternion for sampling orientations"""
@@ -55,6 +58,32 @@ def random_quaternion():
     y = math.cos(theta1) * sigma1
     z = math.sin(theta2) * sigma2
     return Quaternion(w, x, y, z)
+
+
+# Q is a Nx4 numpy matrix and contains the quaternions to average in the rows.
+# The quaternions are arranged as (w,x,y,z), with w being the scalar
+# The result will be the average quaternion of the input. Note that the signs
+# of the output quaternion can be reversed, since q and -q describe the same orientation
+
+# from: https://github.com/christophhagen/averaging-quaternions/blob/master/averageQuaternions.py
+def average_quaternions(Q):
+    # Number of quaternions to average
+    M = Q.shape[0]
+    A = npm.zeros(shape=(4, 4))
+
+    for i in range(0, M):
+        q = Q[i, :]
+        # multiply q with its transposed version q' and add A
+        A = np.outer(q, q) + A
+
+    # scale
+    A = (1.0/M)*A
+    # compute eigenvalues and -vectors
+    eigenValues, eigenVectors = np.linalg.eig(A)
+    # Sort by largest eigenvalue
+    eigenVectors = eigenVectors[:, eigenValues.argsort()[::-1]]
+    # return the real part of the largest eigenvector (has only real part)
+    return np.real(eigenVectors[:, 0].A1)
 
 
 class Boat(object):
@@ -120,7 +149,7 @@ class Boat(object):
 
         # for the future: to have the most realistic behaviour first change orientation, then move forward (in direction of z axis of camera frame)
 
-        # to make sure to stay in tank todo: is that necessary?
+        # to make sure to stay in tank
         # works but not the best solution (not gaussian anymore) and probably incredibly slow
         if noisy:
             # adding noise to position
@@ -198,29 +227,12 @@ class Boat(object):
                 if predicted_measurement_all[ind][0] == id:
                     predicted_measurement.append(predicted_measurement_all[ind])
 
-        # print predicted_measurement_all
-        """
-        if meas_type == 2:
-            q_dist_list = []
-
-            for ind in range(len(predicted_measurement)):
-                q_dist = Quaternion.absolute_distance(predicted_measurement[ind][4], measurements[ind][4])
-                q_dist_list.append(q_dist)
-        """
-
         # resizing necessary
         len_meas = len(measurements)
 
         # numV = number of variables per measurement, defined at the top
         a = np.zeros((len_meas, numV))
         for ind in range(len(measurements)):
-            """
-            # including id
-            a[ind][0] = measurements[ind][0]
-            a[ind][1] = measurements[ind][1]
-            a[ind][2] = measurements[ind][2]
-            a[ind][3] = measurements[ind][3]
-            """
 
             # without id
             a[ind][0] = measurements[ind][1]
@@ -231,19 +243,11 @@ class Boat(object):
 
         b = np.zeros((len_meas, numV))
         for ind in range(len(predicted_measurement)):
-            """
-            # including id
-            b[ind][0] = predicted_measurement[ind][0]
-            b[ind][1] = predicted_measurement[ind][1]
-            b[ind][2] = predicted_measurement[ind][2]
-            b[ind][3] = predicted_measurement[ind][3]
-            """
 
             # without id
             b[ind][0] = predicted_measurement[ind][1]
             b[ind][1] = predicted_measurement[ind][2]
             b[ind][2] = predicted_measurement[ind][3]
-            #print b
 
         predicted_measurement_resized = np.reshape(b, len_meas * numV)
 
@@ -255,8 +259,6 @@ class Boat(object):
 
         # weight of particles
         weight = multivariate_normal.pdf(predicted_measurement_resized, mean=measurements_resized, cov=cov_matrix)
-
-        #print weight
         return weight
 
 
@@ -283,10 +285,16 @@ class ParticleFilter(object):
     def callback(self, msg):
 
         measurements = []
+        orientations = []
 
         for p in msg.poses:
-            measurement = [p.id, p.pose.position.x, p.pose.position.y, p.pose.position.z]
+
+            # orientation doesn't have to be in here
+            measurement = [p.id, p.pose.position.x, p.pose.position.y, p.pose.position.z, p.pose.orientation.w, p.pose.orientation.x, p.pose.orientation.y, p.pose.orientation.z]
             measurements.append(measurement)
+
+            orientation = [p.pose.orientation.w, p.pose.orientation.x, p.pose.orientation.y, p.pose.orientation.z]
+            orientations.append(orientation)
 
         # move particles (so far only adding random noise, noise parameter: move_noise)
         particles2 = []
@@ -297,6 +305,9 @@ class ParticleFilter(object):
         self.__particles = particles2
 
         if len(msg.poses) > 0:
+
+            num_meas = len(msg.poses)
+
             # weight particles according to how likely the measurement would be
             weights = []
             for i in range(numP):
@@ -320,6 +331,13 @@ class ParticleFilter(object):
                 particles3.append(self.__particles[index])
             self.__particles = particles3
 
+            # To publish orientation, a mean quaternion is calculated from all measured orientations
+            # num_meas x 4 matrix, containing quaternions in rows, in order: w, x, y, z
+            quaternions_mat = np.asarray(orientations)
+
+            average_quaternion = average_quaternions(quaternions_mat)  #  this is also in order: w, x, y, z
+            # published further down
+
         # if len(msg.poses) = 0 -> no new measurements
         else:
             print("No new Measurement")
@@ -342,22 +360,35 @@ class ParticleFilter(object):
 
         # publish estimated pose
         # as PoseStamped()
+        # THIS POSE IS IN NED
         pub_pose = PoseStamped()
         pub_pose.header = u.make_header("map")
         pub_pose.pose.position.x = x_mean
         pub_pose.pose.position.y = y_mean
         pub_pose.pose.position.z = z_mean
+        pub_pose.pose.orientation.x = average_quaternion[1]
+        pub_pose.pose.orientation.y = average_quaternion[2]
+        pub_pose.pose.orientation.z = average_quaternion[3]
+        pub_pose.pose.orientation.w = average_quaternion[0]
         self.__pub.publish(pub_pose)
 
         # publish estimated pose to /mavros/vision_pose/pose
-        # expects to get coordinates in ENU, so need to change this
+        # expects to get coordinates in ENU, so need to change axes
+        # THIS POSE IS IN ENU
         pub_mav_pose = PoseStamped()
-        pub_mav_pose.header = u.make_header("map")    # not sure what header is needed
+        pub_mav_pose.header = u.make_header("map")    # not sure what header is needed todo
         pub_mav_pose.pose.position.x = y_mean
         pub_mav_pose.pose.position.y = x_mean
         pub_mav_pose.pose.position.z = - z_mean
+        # conversion from NED to ENU
+        # unklar ob richtig
+        pub_pose.pose.orientation.w = average_quaternion[1]
+        pub_pose.pose.orientation.x = average_quaternion[2]
+        pub_pose.pose.orientation.y = average_quaternion[3]
+        pub_pose.pose.orientation.z = average_quaternion[0]
+
         self.__pub4.publish(pub_mav_pose)
-        # without changing:
+        # without changing to ENU:
         # self.__pub4.publish(pub_pose)
 
         if se.use_rviz:
