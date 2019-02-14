@@ -435,20 +435,38 @@ class ParticleFilter(object):
 
         if len(msg.poses) > 0:
             # conversion from NED to ENU
+
+            rot_mat = np.array([[0, 1.0, 0], [1.0, 0, 0], [0, 0, -1.0]])
+            quat_ned = Quaternion(matrix=rot_mat)
+            test_quat = meas_orient_quat * quat_ned
             """
             # Not sure if this is working (apparently: NED -> ENU: (w x y z) -> (y x -z w))
-            # THIS POSE IS IN ENU
+            # NOT WORKING
+            # might work if publishing of local_pose in mavros_setpoints does not work
             pub_pose.pose.orientation.w = average_quaternion[2]
             pub_pose.pose.orientation.x = average_quaternion[1]
             pub_pose.pose.orientation.y = - average_quaternion[3]
             pub_pose.pose.orientation.z = average_quaternion[0]
             """
-            # body-fixed NED -> ROS ENU:
+
+            #swapped_axes_quat = Quaternion(pub_pose.pose.orientation.w, pub_pose.pose.orientation.x, pub_pose.pose.orientation.y, pub_pose.pose.orientation.z)
+            #print "swapped axes: " + str(swapped_axes_quat)
+            #print "transforemd quat: " + str(test_quat)
+
+            """
+            # body-fixed NED -> ROS ENU: 
+            # NOT WORKING
             pub_pose.pose.orientation.w = average_quaternion[1]
             pub_pose.pose.orientation.x = - average_quaternion[2]
             pub_pose.pose.orientation.y = - average_quaternion[3]
             pub_pose.pose.orientation.z = average_quaternion[0]
+            """
 
+            # TEST
+            pub_pose.pose.orientation.w = 1.0
+            pub_pose.pose.orientation.x = 2.0
+            pub_pose.pose.orientation.y = 3.0
+            pub_pose.pose.orientation.z = 4.0
 
         self.__pub_mavros_pose.publish(pub_mav_pose)
         # without changing to ENU:
