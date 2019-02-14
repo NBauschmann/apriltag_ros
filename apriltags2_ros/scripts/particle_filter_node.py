@@ -435,11 +435,20 @@ class ParticleFilter(object):
 
         if len(msg.poses) > 0:
             # conversion from NED to ENU
+            """
             # Not sure if this is working (apparently: NED -> ENU: (w x y z) -> (y x -z w))
+            # THIS POSE IS IN ENU
             pub_pose.pose.orientation.w = average_quaternion[2]
             pub_pose.pose.orientation.x = average_quaternion[1]
             pub_pose.pose.orientation.y = - average_quaternion[3]
             pub_pose.pose.orientation.z = average_quaternion[0]
+            """
+            # body-fixed NED -> ROS ENU:
+            pub_pose.pose.orientation.w = average_quaternion[1]
+            pub_pose.pose.orientation.x = - average_quaternion[2]
+            pub_pose.pose.orientation.y = - average_quaternion[3]
+            pub_pose.pose.orientation.z = average_quaternion[0]
+
 
         self.__pub_mavros_pose.publish(pub_mav_pose)
         # without changing to ENU:
