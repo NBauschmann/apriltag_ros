@@ -463,10 +463,10 @@ class ParticleFilter(object):
             """
 
             # TEST
-            pub_pose.pose.orientation.w = 1.0
-            pub_pose.pose.orientation.x = 2.0
-            pub_pose.pose.orientation.y = 3.0
-            pub_pose.pose.orientation.z = 4.0
+            pub_mav_pose.pose.orientation.w = 0.
+            pub_mav_pose.pose.orientation.x = 2.0
+            pub_mav_pose.pose.orientation.y = 3.0
+            pub_mav_pose.pose.orientation.z = 4.0
 
         self.__pub_mavros_pose.publish(pub_mav_pose)
         # without changing to ENU:
