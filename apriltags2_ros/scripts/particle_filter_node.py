@@ -19,8 +19,10 @@ import utils as u
 
 from apriltags2_ros.msg import HippoPose
 from apriltags2_ros.msg import HippoPoses
+from apriltags2_ros.msg import Euler
 
 import numpy.matlib as npm   # for averaging quaternions function
+from pyquaternion import Quaternion
 
 """
 Particle Filter 2
@@ -30,9 +32,6 @@ actual measurements (distance and orientation from camera to tag).
 
 """
 
-
-# set this if meas_type = 1
-cam_orientation = Quaternion(0.5, 0.5, 0.5, 0.5)  # quaternion for camera facing wall with big windows
 
 # number of measured variables per measurement:
 #numV = 4  # tag_id, x, y, z
@@ -44,6 +43,10 @@ numP = 200
 # tags from settings, add more there
 tags = se.tags
 
+last_orientation_x = 0
+last_orientation_y = 0
+last_orientation_z = 0
+last_orientation_w = 0
 
 # not needed anymore
 def random_quaternion():
@@ -58,6 +61,20 @@ def random_quaternion():
     y = math.cos(theta1) * sigma1
     z = math.sin(theta2) * sigma2
     return Quaternion(w, x, y, z)
+
+
+def rotation_matrix_to_euler_angles(R):
+    sy = np.sqrt(R[0, 0] * R[0, 0] + R[1, 0] * R[1, 0])
+    singular = sy < 1e-6
+    if not singular:
+        x = np.arctan2(R[2, 1], R[2, 2])
+        y = np.arctan2(-R[2, 0], sy)
+        z = np.arctan2(R[1, 0], R[0, 0])
+    else:
+        x = np.arctan2(-R[1, 2], R[1, 1])
+        y = np.arctan2(-R[2, 0], sy)
+        z = 0
+    return np.array([x, y, z])
 
 
 # Q is a Nx4 numpy matrix and contains the quaternions to average in the rows.
@@ -263,13 +280,18 @@ class Boat(object):
 
 
 class ParticleFilter(object):
-    def __init__(self, pub, pub2, pub3, pub4, particles):
-        self.__pub = pub
-        self.__pub2 = pub2
-        self.__pub3 = pub3
-        self.__pub4 = pub4
+    def __init__(self, pub_est_pose, pub_particles, pub_mavros_pose, pub_euler, particles):
+        self.__pub_est_pose = pub_est_pose
+        self.__pub_particles = pub_particles
+        self.__pub_mavros_pose = pub_mavros_pose
+        self.__pub_euler = pub_euler
         self.__particles = particles
         self.__message = []
+        self.__last_orientation_x = 0
+        self.__last_orientation_y = 0
+        self.__last_orientation_z = 0
+        self.__last_orientation_w = 0
+        self.__euler = np.array([0, 0, 0])
 
     @staticmethod
     def particle_to_pose(particle):
@@ -344,7 +366,6 @@ class ParticleFilter(object):
             print("No new Measurement")
 
         # calculate mean position of particles
-        # todo: there's probably a better way of determining the estimated_pose
         all_x = []
         all_y = []
         all_z = []
@@ -367,12 +388,34 @@ class ParticleFilter(object):
         pub_pose.pose.position.x = x_mean
         pub_pose.pose.position.y = y_mean
         pub_pose.pose.position.z = z_mean
-        if average_quaternion:
+
+        # since orientation isn't being filtered, only publish if measurement received
+        if len(msg.poses) > 0:
             pub_pose.pose.orientation.x = average_quaternion[1]
             pub_pose.pose.orientation.y = average_quaternion[2]
             pub_pose.pose.orientation.z = average_quaternion[3]
             pub_pose.pose.orientation.w = average_quaternion[0]
-        self.__pub.publish(pub_pose)
+
+            # save this to publish last measured orientation
+            self.__last_orientation_x = average_quaternion[1]
+            self.__last_orientation_y = average_quaternion[2]
+            self.__last_orientation_z = average_quaternion[3]
+            self.__last_orientation_w = average_quaternion[0]
+
+            # convert quaternion -> rotation matrix -> euler angles
+            meas_orient_quat = Quaternion(average_quaternion[0], average_quaternion[1], average_quaternion[2], average_quaternion[3])
+            meas_orient_quat = meas_orient_quat.normalised   # normalize
+            meas_orient_matrix = meas_orient_quat.rotation_matrix
+            self.__euler = rotation_matrix_to_euler_angles(meas_orient_matrix)
+
+        # if no measurement received: publish last measured orientation
+        else:
+            pub_pose.pose.orientation.x = self.__last_orientation_x
+            pub_pose.pose.orientation.y = self.__last_orientation_y
+            pub_pose.pose.orientation.z = self.__last_orientation_z
+            pub_pose.pose.orientation.w = self.__last_orientation_w
+
+        self.__pub_est_pose.publish(pub_pose)
 
         # publish estimated pose to /mavros/vision_pose/pose
         # expects to get coordinates in ENU, so need to change axes
@@ -382,7 +425,15 @@ class ParticleFilter(object):
         pub_mav_pose.pose.position.x = y_mean
         pub_mav_pose.pose.position.y = x_mean
         pub_mav_pose.pose.position.z = - z_mean
-        if average_quaternion:
+
+        # publish euler angles to /euler
+        pub_euler = Euler()
+        pub_euler.roll = self.__euler[0]
+        pub_euler.pitch = self.__euler[1]
+        pub_euler.yaw = self.__euler[2]
+        self.__pub_euler.publish(pub_euler)
+
+        if len(msg.poses) > 0:
             # conversion from NED to ENU
             # Not sure if this is working (apparently: NED -> ENU: (w x y z) -> (y x -z w))
             pub_pose.pose.orientation.w = average_quaternion[2]
@@ -390,26 +441,16 @@ class ParticleFilter(object):
             pub_pose.pose.orientation.y = - average_quaternion[3]
             pub_pose.pose.orientation.z = average_quaternion[0]
 
-        self.__pub4.publish(pub_mav_pose)
+        self.__pub_mavros_pose.publish(pub_mav_pose)
         # without changing to ENU:
         # self.__pub4.publish(pub_pose)
 
         if se.use_rviz:
-            # publish estimated pose to rviz
-            # as PointStamped() (only used for rviz)
-            # not really needed todo: get rid of this
-            pub_2 = PointStamped()
-            pub_2.header = u.make_header("map")
-            pub_2.point.x = x_mean
-            pub_2.point.y = y_mean
-            pub_2.point.z = z_mean
-            self.__pub2.publish(pub_2)
-
             # publish particles as PoseArray() (only used for rviz)
             pub3 = PoseArray()
             pub3.header = u.make_header("map")
             pub3.poses = self.particles_to_poses(self.__particles)
-            self.__pub3.publish(pub3)
+            self.__pub_particles.publish(pub3)
 
 
 def main():
@@ -424,11 +465,11 @@ def main():
     print "Particles initialized"
     # initialize subscriber and publisher
     rospy.init_node('particle_filter_node')
-    pub = rospy.Publisher('estimated_pose', PoseStamped, queue_size=1)
-    pub2 = rospy.Publisher('estimated_position', PointStamped, queue_size=1)
-    pub3 = rospy.Publisher('particle_poses', PoseArray, queue_size=1)
-    pub4 = rospy.Publisher('/mavros/vision_pose/pose', PoseStamped, queue_size=1)
-    particle_filter = ParticleFilter(pub, pub2, pub3, pub4, particles)
+    pub_est_pose = rospy.Publisher('estimated_pose', PoseStamped, queue_size=1)
+    pub_particles = rospy.Publisher('particle_poses', PoseArray, queue_size=1)
+    pub_mavros_pose = rospy.Publisher('/mavros/vision_pose/pose', PoseStamped, queue_size=1)
+    pub_euler = rospy.Publisher('euler', Euler, queue_size=1)
+    particle_filter = ParticleFilter(pub_est_pose, pub_particles, pub_mavros_pose, pub_euler, particles)
     rospy.Subscriber("/hippo_poses", HippoPoses, particle_filter.callback, queue_size=1)
 
     while not rospy.is_shutdown():

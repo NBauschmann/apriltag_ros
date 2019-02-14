@@ -45,6 +45,7 @@ add_message_files(
   AprilTagDetection.msg
   HippoPose.msg
   HippoPoses.msg
+  Euler.msg
 )
 
 add_service_files(
