@@ -95,12 +95,12 @@ l4 = 1.49
 l5 = 1.98
 l6 = 1.98
 
-#offset stange nr
+# offset stange nr
 s1 = 0.1
 s2 = 0
-s3 = 0 # abstand zwischen 2 und 3
+s3 = 0   # abstand zwischen 2 und 3
 s4 = 0.15
-s5 = 0 # abstand zwischen 5 und 6
+s5 = 0   # abstand zwischen 5 und 6
 s6 = 0
 
 # anbringtiefe stangen
