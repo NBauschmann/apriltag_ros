@@ -380,7 +380,7 @@ class ParticleFilter(object):
         # print np.std(all_x), np.std(all_y), np.std(all_z)
         # rospy.loginfo('seen_tag_id: {}, x_mean: {}'.format(tag_id, x_mean))
 
-        # publish estimated pose
+        # publish estimated pose to /estimated_pose (for debugging purposes)
         # as PoseStamped()
         # THIS POSE IS IN NED
         pub_pose = PoseStamped()
@@ -388,54 +388,41 @@ class ParticleFilter(object):
         pub_pose.pose.position.x = x_mean
         pub_pose.pose.position.y = y_mean
         pub_pose.pose.position.z = z_mean
+        # orientation is published further down
+
+        # publish estimated pose to /mavros/vision_pose/pose
+        # expects to get coordinates in ENU, so need to transform to ENU
+        # THIS POSE IS IN ENU
+        pub_mav_pose = PoseStamped()
+        pub_mav_pose.header = u.make_header("map")  # not sure what header is needed todo
+        pub_mav_pose.pose.position.x = y_mean
+        pub_mav_pose.pose.position.y = x_mean
+        pub_mav_pose.pose.position.z = - z_mean
+        # orientation is published further down
 
         # since orientation isn't being filtered, only publish if measurement received
         if len(msg.poses) > 0:
-            pub_pose.pose.orientation.x = average_quaternion[1]
-            pub_pose.pose.orientation.y = average_quaternion[2]
-            pub_pose.pose.orientation.z = average_quaternion[3]
-            pub_pose.pose.orientation.w = average_quaternion[0]
-
-            # save this to publish last measured orientation
+            # save this to publish last measured orientation in case of no new measurement
             self.__last_orientation_x = average_quaternion[1]
             self.__last_orientation_y = average_quaternion[2]
             self.__last_orientation_z = average_quaternion[3]
             self.__last_orientation_w = average_quaternion[0]
 
+            # debugging pose to /estimated_pose
+            pub_pose.pose.orientation.x = average_quaternion[1]
+            pub_pose.pose.orientation.y = average_quaternion[2]
+            pub_pose.pose.orientation.z = average_quaternion[3]
+            pub_pose.pose.orientation.w = average_quaternion[0]
+
             # convert quaternion -> rotation matrix -> euler angles
+            # published further down
             meas_orient_quat = Quaternion(average_quaternion[0], average_quaternion[1], average_quaternion[2], average_quaternion[3])
             meas_orient_quat = meas_orient_quat.normalised   # normalize
             meas_orient_matrix = meas_orient_quat.rotation_matrix
             self.__euler = rotation_matrix_to_euler_angles(meas_orient_matrix)
 
-        # if no measurement received: publish last measured orientation
-        else:
-            pub_pose.pose.orientation.x = self.__last_orientation_x
-            pub_pose.pose.orientation.y = self.__last_orientation_y
-            pub_pose.pose.orientation.z = self.__last_orientation_z
-            pub_pose.pose.orientation.w = self.__last_orientation_w
-
-        self.__pub_est_pose.publish(pub_pose)
-
-        # publish estimated pose to /mavros/vision_pose/pose
-        # expects to get coordinates in ENU, so need to change axes
-        # THIS POSE IS IN ENU
-        pub_mav_pose = PoseStamped()
-        pub_mav_pose.header = u.make_header("map")    # not sure what header is needed todo
-        pub_mav_pose.pose.position.x = y_mean
-        pub_mav_pose.pose.position.y = x_mean
-        pub_mav_pose.pose.position.z = - z_mean
-
-        # publish euler angles to /euler
-        pub_euler = Euler()
-        pub_euler.roll = self.__euler[0]
-        pub_euler.pitch = self.__euler[1]
-        pub_euler.yaw = self.__euler[2]
-        self.__pub_euler.publish(pub_euler)
-
-        if len(msg.poses) > 0:
+            # pose to /mavros/vision_pose/pose
             # conversion from NED to ENU
-
             rot_mat = np.array([[0, 1.0, 0], [1.0, 0, 0], [0, 0, -1.0]])
             quat_ned = Quaternion(matrix=rot_mat)
             test_quat = meas_orient_quat * quat_ned
@@ -443,34 +430,62 @@ class ParticleFilter(object):
             # Not sure if this is working (apparently: NED -> ENU: (w x y z) -> (y x -z w))
             # NOT WORKING
             # might work if publishing of local_pose in mavros_setpoints does not work
-            pub_pose.pose.orientation.w = average_quaternion[2]
-            pub_pose.pose.orientation.x = average_quaternion[1]
-            pub_pose.pose.orientation.y = - average_quaternion[3]
-            pub_pose.pose.orientation.z = average_quaternion[0]
+            pub_mav_pose.pose.orientation.w = average_quaternion[2]
+            pub_mav_pose.pose.orientation.x = average_quaternion[1]
+            pub_mav_pose.pose.orientation.y = - average_quaternion[3]
+            pub_mav_pose.pose.orientation.z = average_quaternion[0]
             """
 
-            #swapped_axes_quat = Quaternion(pub_pose.pose.orientation.w, pub_pose.pose.orientation.x, pub_pose.pose.orientation.y, pub_pose.pose.orientation.z)
-            #print "swapped axes: " + str(swapped_axes_quat)
-            #print "transforemd quat: " + str(test_quat)
+            # swapped_axes_quat = Quaternion(pub_pose.pose.orientation.w, pub_pose.pose.orientation.x, pub_pose.pose.orientation.y, pub_pose.pose.orientation.z)
+            # print "swapped axes: " + str(swapped_axes_quat)
+            # print "transformed quat: " + str(test_quat)
 
             """
             # body-fixed NED -> ROS ENU: 
             # NOT WORKING
-            pub_pose.pose.orientation.w = average_quaternion[1]
-            pub_pose.pose.orientation.x = - average_quaternion[2]
-            pub_pose.pose.orientation.y = - average_quaternion[3]
-            pub_pose.pose.orientation.z = average_quaternion[0]
+            pub_mav_pose.pose.orientation.w = average_quaternion[1]
+            pub_mav_pose.pose.orientation.x = - average_quaternion[2]
+            pub_mav_pose.pose.orientation.y = - average_quaternion[3]
+            pub_mav_pose.pose.orientation.z = average_quaternion[0]
             """
 
             # TEST
-            pub_mav_pose.pose.orientation.w = 0.
+            pub_pose.pose.orientation.w = 1.0
+            pub_pose.pose.orientation.x = 2.0
+            pub_pose.pose.orientation.y = 3.0
+            pub_pose.pose.orientation.z = 4.0
+
+            pub_mav_pose.pose.orientation.w = 1.0
             pub_mav_pose.pose.orientation.x = 2.0
             pub_mav_pose.pose.orientation.y = 3.0
             pub_mav_pose.pose.orientation.z = 4.0
 
+        # if no measurement received: publish last measured orientation
+        else:
+            # debugging pose to /estimated_pose
+            pub_pose.pose.orientation.x = self.__last_orientation_x
+            pub_pose.pose.orientation.y = self.__last_orientation_y
+            pub_pose.pose.orientation.z = self.__last_orientation_z
+            pub_pose.pose.orientation.w = self.__last_orientation_w
+
+            # to /mavros/vision_pose/pose
+            pub_mav_pose.pose.orientation.x = self.__last_orientation_x
+            pub_mav_pose.pose.orientation.y = self.__last_orientation_y
+            pub_mav_pose.pose.orientation.z = self.__last_orientation_z
+            pub_mav_pose.pose.orientation.w = self.__last_orientation_w
+
+        # publishing both poses
+        self.__pub_est_pose.publish(pub_pose)
         self.__pub_mavros_pose.publish(pub_mav_pose)
-        # without changing to ENU:
-        # self.__pub4.publish(pub_pose)
+        # without converting to ENU:
+        # self.__pub_mavros_pose.publish(pub_pose)
+
+        # publish euler angles to /euler
+        pub_euler = Euler()
+        pub_euler.roll = self.__euler[0]
+        pub_euler.pitch = self.__euler[1]
+        pub_euler.yaw = self.__euler[2]
+        self.__pub_euler.publish(pub_euler)
 
         if se.use_rviz:
             # publish particles as PoseArray() (only used for rviz)
