@@ -472,7 +472,7 @@ class ParticleFilter(object):
         self.__pub_est_pose.publish(pub_pose)
         self.__pub_mavros_pose.publish(pub_mav_pose)
         # without converting to ENU:
-        # self.__pub_mavros_pose.publish(pub_pose)
+        #self.__pub_mavros_pose.publish(pub_pose)
 
         # publish euler angles to /euler
         pub_euler = Euler()
