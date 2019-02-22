@@ -449,16 +449,10 @@ class ParticleFilter(object):
             pub_mav_pose.pose.orientation.z = average_quaternion[0]
             """
 
-            # TEST
-            pub_pose.pose.orientation.w = 1.0
-            pub_pose.pose.orientation.x = 2.0
-            pub_pose.pose.orientation.y = 3.0
-            pub_pose.pose.orientation.z = 4.0
-
-            pub_mav_pose.pose.orientation.w = 1.0
-            pub_mav_pose.pose.orientation.x = 2.0
-            pub_mav_pose.pose.orientation.y = 3.0
-            pub_mav_pose.pose.orientation.z = 4.0
+            pub_mav_pose.pose.orientation.x = average_quaternion[1]
+            pub_mav_pose.pose.orientation.y = average_quaternion[2]
+            pub_mav_pose.pose.orientation.z = average_quaternion[3]
+            pub_mav_pose.pose.orientation.w = average_quaternion[0]
 
         # if no measurement received: publish last measured orientation
         else:
