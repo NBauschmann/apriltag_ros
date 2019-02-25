@@ -391,6 +391,7 @@ class ParticleFilter(object):
             average_quaternion_array = average_quaternions(quaternions_mat)  # as array, this is also in order: w, x, y, z
             average_quaternion = Quaternion(average_quaternion_array).normalised    # as Quaternion
 
+            # calculate orientation of fixed body frame
             meas_orient_q = average_quaternion * camera_to_body_q.conjugate
             # published further down
 
@@ -477,7 +478,7 @@ class ParticleFilter(object):
             # conversion from NED to ENU
             rot_mat = np.array([[0, 1.0, 0], [1.0, 0, 0], [0, 0, -1.0]])
             quat_ned = Quaternion(matrix=rot_mat)
-            test_quat = average_quaternion * quat_ned.conjugate
+            test_quat = meas_orient_q * quat_ned.conjugate
 
 
             """
