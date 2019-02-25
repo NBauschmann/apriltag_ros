@@ -49,10 +49,11 @@ class TagMonitor(object):
             # transform pose into world frame
             dist_cam_tag = np.array([[x], [y], [z]])
             quat_cam_tag = Quaternion(qw, qx, qy, qz)
-            print quat_cam_tag.rotation_matrix
+            print "Gemessen: " + str(quat_cam_tag.rotation_matrix)
             position_cam_wf = Tag_list[tag_id].convert_location_to_wf(quat_cam_tag, dist_cam_tag)
             orientation_cam_wf = Tag_list[tag_id].convert_orientation_to_wf(quat_cam_tag)
-
+            print "Umgerechnet: " + str(orientation_cam_wf)
+	    print "Umgerechnet S: " + str(orientation_cam_wf.rotation_matrix)
             # publish "measured by this tag" camera pose (in world frame) as transform
             if se.use_rviz:
 

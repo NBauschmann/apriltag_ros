@@ -417,9 +417,11 @@ class ParticleFilter(object):
             # convert quaternion -> rotation matrix -> euler angles
             # published further down
             meas_orient_quat = Quaternion(average_quaternion[0], average_quaternion[1], average_quaternion[2], average_quaternion[3])
+            print meas_orient_quat
             meas_orient_quat = meas_orient_quat.normalised   # normalize
             meas_orient_matrix = meas_orient_quat.rotation_matrix
             self.__euler = rotation_matrix_to_euler_angles(meas_orient_matrix)
+            print meas_orient_matrix
 
             # pose to /mavros/vision_pose/pose
             # conversion from NED to ENU
