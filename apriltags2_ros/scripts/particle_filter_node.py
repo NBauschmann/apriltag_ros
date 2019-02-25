@@ -477,7 +477,7 @@ class ParticleFilter(object):
             # conversion from NED to ENU
             rot_mat = np.array([[0, 1.0, 0], [1.0, 0, 0], [0, 0, -1.0]])
             quat_ned = Quaternion(matrix=rot_mat)
-            test_quat = average_quaternion * quat_ned
+            test_quat = average_quaternion * quat_ned.conjugate
 
 
             """
