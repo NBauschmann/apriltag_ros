@@ -77,6 +77,27 @@ def rotation_matrix_to_euler_angles(R):
     return np.array([x, y, z])
 
 
+def euler_angles_to_rotation_matrix(theta):
+    R_x = np.array([[1, 0, 0],
+                    [0, math.cos(theta[0]), -math.sin(theta[0])],
+                    [0, math.sin(theta[0]), math.cos(theta[0])]
+                    ])
+
+    R_y = np.array([[math.cos(theta[1]), 0, math.sin(theta[1])],
+                    [0, 1, 0],
+                    [-math.sin(theta[1]), 0, math.cos(theta[1])]
+                    ])
+
+    R_z = np.array([[math.cos(theta[2]), -math.sin(theta[2]), 0],
+                    [math.sin(theta[2]), math.cos(theta[2]), 0],
+                    [0, 0, 1]
+                    ])
+
+    R = np.dot(R_z, np.dot(R_y, R_x))
+
+    return R
+
+
 # Q is a Nx4 numpy matrix and contains the quaternions to average in the rows.
 # The quaternions are arranged as (w,x,y,z), with w being the scalar
 # The result will be the average quaternion of the input. Note that the signs
@@ -417,11 +438,20 @@ class ParticleFilter(object):
             # convert quaternion -> rotation matrix -> euler angles
             # published further down
             meas_orient_quat = Quaternion(average_quaternion[0], average_quaternion[1], average_quaternion[2], average_quaternion[3])
+            print "gemessenes Quaternion: "
             print meas_orient_quat
             meas_orient_quat = meas_orient_quat.normalised   # normalize
             meas_orient_matrix = meas_orient_quat.rotation_matrix
             self.__euler = rotation_matrix_to_euler_angles(meas_orient_matrix)
+
+            print "Aus Quaternion berechnete Rotationsmatrix: "
             print meas_orient_matrix
+
+            print "Berechnete Eulerwinkel: "
+            print self.__euler
+
+            print "Aus Eulerwinkeln berechnete Rotationsmatrix: "
+            print euler_angles_to_rotation_matrix(self.__euler)
 
             # pose to /mavros/vision_pose/pose
             # conversion from NED to ENU
