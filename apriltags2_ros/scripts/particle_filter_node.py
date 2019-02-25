@@ -448,14 +448,21 @@ class ParticleFilter(object):
             pub_pose.pose.orientation.w = meas_orient_q[0]
 
             # convert quaternion -> rotation matrix -> euler angles
-            # published further down
+            meas_orient_matrix = meas_orient_q.rotation_matrix
+            self.__euler = rotation_matrix_to_euler_angles(meas_orient_matrix)
+
+            # publish euler angles to /euler
+            pub_euler = Euler()
+            pub_euler.roll = self.__euler[0]
+            pub_euler.pitch = self.__euler[1]
+            pub_euler.yaw = self.__euler[2]
+            self.__pub_euler.publish(pub_euler)
+
             print "gemessenes Quaternion: "
             print average_quaternion
 
             print "transformiertes Quaternion in body frame: "
             print meas_orient_q
-            meas_orient_matrix = meas_orient_q.rotation_matrix
-            self.__euler = rotation_matrix_to_euler_angles(meas_orient_matrix)
 
             print "Aus Quaternion berechnete Rotationsmatrix: "
             print meas_orient_matrix
@@ -472,6 +479,8 @@ class ParticleFilter(object):
             quat_ned = Quaternion(matrix=rot_mat)
             test_quat = average_quaternion * quat_ned
 
+
+            """
             # Not sure if this is working (apparently: NED -> ENU: (w x y z) -> (y x -z w))
             # NOT WORKING
             # might work if publishing of local_pose in mavros_setpoints does not work
@@ -479,7 +488,7 @@ class ParticleFilter(object):
             pub_mav_pose.pose.orientation.x = meas_orient_q[2]
             pub_mav_pose.pose.orientation.y = meas_orient_q[1]
             pub_mav_pose.pose.orientation.z = - meas_orient_q[3]
-
+            """
 
             # swapped_axes_quat = Quaternion(pub_pose.pose.orientation.w, pub_pose.pose.orientation.x, pub_pose.pose.orientation.y, pub_pose.pose.orientation.z)
             # print "swapped axes: " + str(swapped_axes_quat)
@@ -494,10 +503,13 @@ class ParticleFilter(object):
             pub_mav_pose.pose.orientation.z = average_quaternion[0]
             """
 
-            pub_mav_pose.pose.orientation.x = meas_orient_q[1]
-            pub_mav_pose.pose.orientation.y = meas_orient_q[2]
-            pub_mav_pose.pose.orientation.z = meas_orient_q[3]
-            pub_mav_pose.pose.orientation.w = meas_orient_q[0]
+            pub_mav_pose.pose.orientation.x = test_quat[1]
+            pub_mav_pose.pose.orientation.y = test_quat[2]
+            pub_mav_pose.pose.orientation.z = test_quat[3]
+            pub_mav_pose.pose.orientation.w = test_quat[0]
+
+            print "Fuer Pixracer transformiertes q: "
+            print test_quat
 
         # if no measurement received: publish last measured orientation
         else:
@@ -519,12 +531,7 @@ class ParticleFilter(object):
         # without converting to ENU:
         #self.__pub_mavros_pose.publish(pub_pose)
 
-        # publish euler angles to /euler
-        pub_euler = Euler()
-        pub_euler.roll = self.__euler[0]
-        pub_euler.pitch = self.__euler[1]
-        pub_euler.yaw = self.__euler[2]
-        self.__pub_euler.publish(pub_euler)
+
 
         if se.use_rviz:
             # publish particles as PoseArray() (only used for rviz)
