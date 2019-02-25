@@ -391,7 +391,7 @@ class ParticleFilter(object):
             average_quaternion_array = average_quaternions(quaternions_mat)  # as array, this is also in order: w, x, y, z
             average_quaternion = Quaternion(average_quaternion_array).normalised    # as Quaternion
 
-            meas_orient_q = average_quaternion * camera_to_body_q
+            meas_orient_q = average_quaternion * camera_to_body_q.conjugate
             # published further down
 
         # if len(msg.poses) = 0 -> no new measurements
