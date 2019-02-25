@@ -391,7 +391,7 @@ class ParticleFilter(object):
             average_quaternion_array = average_quaternions(quaternions_mat)  # as array, this is also in order: w, x, y, z
             average_quaternion = Quaternion(average_quaternion_array).normalised    # as Quaternion
 
-            meas_orient_q = average_quaternion
+            meas_orient_q = average_quaternion * camera_to_body_q
             # published further down
 
         # if len(msg.poses) = 0 -> no new measurements
@@ -451,7 +451,10 @@ class ParticleFilter(object):
             # published further down
             print "gemessenes Quaternion: "
             print average_quaternion
-            meas_orient_matrix = average_quaternion.rotation_matrix
+
+            print "transformiertes Quaternion in body frame: "
+            print meas_orient_q
+            meas_orient_matrix = meas_orient_q.rotation_matrix
             self.__euler = rotation_matrix_to_euler_angles(meas_orient_matrix)
 
             print "Aus Quaternion berechnete Rotationsmatrix: "
