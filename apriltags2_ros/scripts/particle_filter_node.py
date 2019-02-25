@@ -48,6 +48,13 @@ last_orientation_y = 0
 last_orientation_z = 0
 last_orientation_w = 0
 
+# Quaternion to transform from camera frame (z pointing forward, x to the right, y down)
+# to body-fixed frame (x pointing forward, y to the right, z down)
+# (not sure if this might need to be inverted)
+camera_to_body_rotation_matrix = np.array([[0, 0, 1.0], [1.0, 0, 0], [0, 1.0, 0]])
+camera_to_body_q = Quaternion(matrix=camera_to_body_rotation_matrix)
+
+
 # not needed anymore
 def random_quaternion():
     """returns uniformly-distributed random unit quaternion for sampling orientations"""
@@ -374,12 +381,12 @@ class ParticleFilter(object):
                 particles3.append(self.__particles[index])
             self.__particles = particles3
 
-
             # To publish orientation, a mean quaternion is calculated from all measured orientations
             # num_meas x 4 matrix, containing quaternions in rows, in order: w, x, y, z
             quaternions_mat = np.asarray(orientations)
 
-            average_quaternion = average_quaternions(quaternions_mat)   # this is also in order: w, x, y, z
+            average_quaternion_array = average_quaternions(quaternions_mat)  # as array, this is also in order: w, x, y, z
+            average_quaternion = Quaternion(average_quaternion_array)        # as Quaternion
             # published further down
 
         # if len(msg.poses) = 0 -> no new measurements
