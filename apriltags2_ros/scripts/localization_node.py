@@ -49,6 +49,7 @@ class TagMonitor(object):
             # transform pose into world frame
             dist_cam_tag = np.array([[x], [y], [z]])
             quat_cam_tag = Quaternion(qw, qx, qy, qz)
+            print quat_cam_tag.rotation_matrix
             position_cam_wf = Tag_list[tag_id].convert_location_to_wf(quat_cam_tag, dist_cam_tag)
             orientation_cam_wf = Tag_list[tag_id].convert_orientation_to_wf(quat_cam_tag)
 
