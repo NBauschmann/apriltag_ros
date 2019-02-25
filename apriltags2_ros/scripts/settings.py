@@ -107,9 +107,9 @@ s6 = 0
 d = 1.0
 
 # Tags for orientation test
-Tag_0 = tc.Tag(0, np.array([0.0, 1.8, 0.7]), tag_w3_orientation)
-Tag_1 = tc.Tag(1, np.array([0.0, 1.4, 0.7]), tag_w3_orientation)
-Tag_2 = tc.Tag(2, np.array([0.0, 1.0, 0.7]), tag_w3_orientation)
+Tag_0 = tc.Tag(0, np.array([1.6, 2.0, 0.7]), tag_w2_orientation)
+Tag_1 = tc.Tag(1, np.array([2.0, 2.0, 0.7]), tag_w2_orientation)
+Tag_2 = tc.Tag(2, np.array([2.4, 2.0, 0.7]), tag_w2_orientation)
 
 tags = [Tag_0, Tag_1, Tag_2]
 
