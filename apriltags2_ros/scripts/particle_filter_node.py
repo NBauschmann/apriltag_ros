@@ -70,6 +70,8 @@ def random_quaternion():
     return Quaternion(w, x, y, z)
 
 
+# Methods to convert from rotation matrix to euler angles and back
+# from: https://www.learnopencv.com/rotation-matrix-to-euler-angles/
 def rotation_matrix_to_euler_angles(R):
     sy = np.sqrt(R[0, 0] * R[0, 0] + R[1, 0] * R[1, 0])
     singular = sy < 1e-6
@@ -84,6 +86,7 @@ def rotation_matrix_to_euler_angles(R):
     return np.array([x, y, z])
 
 
+# technically not needed, only for debugging
 def euler_angles_to_rotation_matrix(theta):
     R_x = np.array([[1, 0, 0],
                     [0, math.cos(theta[0]), -math.sin(theta[0])],
@@ -386,7 +389,9 @@ class ParticleFilter(object):
             quaternions_mat = np.asarray(orientations)
 
             average_quaternion_array = average_quaternions(quaternions_mat)  # as array, this is also in order: w, x, y, z
-            average_quaternion = Quaternion(average_quaternion_array)        # as Quaternion
+            average_quaternion = Quaternion(average_quaternion_array).normalised    # as Quaternion
+
+            meas_orient_q = average_quaternion
             # published further down
 
         # if len(msg.poses) = 0 -> no new measurements
@@ -431,24 +436,22 @@ class ParticleFilter(object):
         # since orientation isn't being filtered, only publish if measurement received
         if len(msg.poses) > 0:
             # save this to publish last measured orientation in case of no new measurement
-            self.__last_orientation_x = average_quaternion[1]
-            self.__last_orientation_y = average_quaternion[2]
-            self.__last_orientation_z = average_quaternion[3]
-            self.__last_orientation_w = average_quaternion[0]
+            self.__last_orientation_x = meas_orient_q[1]
+            self.__last_orientation_y = meas_orient_q[2]
+            self.__last_orientation_z = meas_orient_q[3]
+            self.__last_orientation_w = meas_orient_q[0]
 
             # debugging pose to /estimated_pose
-            pub_pose.pose.orientation.x = average_quaternion[1]
-            pub_pose.pose.orientation.y = average_quaternion[2]
-            pub_pose.pose.orientation.z = average_quaternion[3]
-            pub_pose.pose.orientation.w = average_quaternion[0]
+            pub_pose.pose.orientation.x = meas_orient_q[1]
+            pub_pose.pose.orientation.y = meas_orient_q[2]
+            pub_pose.pose.orientation.z = meas_orient_q[3]
+            pub_pose.pose.orientation.w = meas_orient_q[0]
 
             # convert quaternion -> rotation matrix -> euler angles
             # published further down
-            meas_orient_quat = Quaternion(average_quaternion[0], average_quaternion[1], average_quaternion[2], average_quaternion[3])
             print "gemessenes Quaternion: "
-            print meas_orient_quat
-            meas_orient_quat = meas_orient_quat.normalised   # normalize
-            meas_orient_matrix = meas_orient_quat.rotation_matrix
+            print average_quaternion
+            meas_orient_matrix = average_quaternion.rotation_matrix
             self.__euler = rotation_matrix_to_euler_angles(meas_orient_matrix)
 
             print "Aus Quaternion berechnete Rotationsmatrix: "
@@ -464,15 +467,15 @@ class ParticleFilter(object):
             # conversion from NED to ENU
             rot_mat = np.array([[0, 1.0, 0], [1.0, 0, 0], [0, 0, -1.0]])
             quat_ned = Quaternion(matrix=rot_mat)
-            test_quat = meas_orient_quat * quat_ned
+            test_quat = average_quaternion * quat_ned
 
             # Not sure if this is working (apparently: NED -> ENU: (w x y z) -> (y x -z w))
             # NOT WORKING
             # might work if publishing of local_pose in mavros_setpoints does not work
-            pub_mav_pose.pose.orientation.w = average_quaternion[0]
-            pub_mav_pose.pose.orientation.x = average_quaternion[2]
-            pub_mav_pose.pose.orientation.y = average_quaternion[1]
-            pub_mav_pose.pose.orientation.z = - average_quaternion[3]
+            pub_mav_pose.pose.orientation.w = meas_orient_q[0]
+            pub_mav_pose.pose.orientation.x = meas_orient_q[2]
+            pub_mav_pose.pose.orientation.y = meas_orient_q[1]
+            pub_mav_pose.pose.orientation.z = - meas_orient_q[3]
 
 
             # swapped_axes_quat = Quaternion(pub_pose.pose.orientation.w, pub_pose.pose.orientation.x, pub_pose.pose.orientation.y, pub_pose.pose.orientation.z)
@@ -488,10 +491,10 @@ class ParticleFilter(object):
             pub_mav_pose.pose.orientation.z = average_quaternion[0]
             """
 
-            pub_mav_pose.pose.orientation.x = average_quaternion[1]
-            pub_mav_pose.pose.orientation.y = average_quaternion[2]
-            pub_mav_pose.pose.orientation.z = average_quaternion[3]
-            pub_mav_pose.pose.orientation.w = average_quaternion[0]
+            pub_mav_pose.pose.orientation.x = meas_orient_q[1]
+            pub_mav_pose.pose.orientation.y = meas_orient_q[2]
+            pub_mav_pose.pose.orientation.z = meas_orient_q[3]
+            pub_mav_pose.pose.orientation.w = meas_orient_q[0]
 
         # if no measurement received: publish last measured orientation
         else:
