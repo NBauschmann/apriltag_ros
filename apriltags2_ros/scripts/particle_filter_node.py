@@ -318,10 +318,8 @@ class ParticleFilter(object):
         self.__pub_euler = pub_euler
         self.__particles = particles
         self.__message = []
-        self.__last_orientation_x = 0
-        self.__last_orientation_y = 0
-        self.__last_orientation_z = 0
-        self.__last_orientation_w = 0
+        self.__last_orientation_q = Quaternion(1.0, 0, 0, 0)
+        self.__last_orientation_q_enu = Quaternion(1.0, 0, 0, 0)
         self.__euler = np.array([0, 0, 0])
 
     @staticmethod
@@ -388,10 +386,11 @@ class ParticleFilter(object):
             # num_meas x 4 matrix, containing quaternions in rows, in order: w, x, y, z
             quaternions_mat = np.asarray(orientations)
 
+            # measured quaternion is orientation of CAMERA frame to world frame
             average_quaternion_array = average_quaternions(quaternions_mat)  # as array, this is also in order: w, x, y, z
             average_quaternion = Quaternion(average_quaternion_array).normalised    # as Quaternion
 
-            # calculate orientation of fixed body frame
+            # calculate orientation of FIXED BODY frame
             meas_orient_q = average_quaternion * camera_to_body_q.conjugate
             # published further down
 
@@ -437,10 +436,7 @@ class ParticleFilter(object):
         # since orientation isn't being filtered, only publish if measurement received
         if len(msg.poses) > 0:
             # save this to publish last measured orientation in case of no new measurement
-            self.__last_orientation_x = meas_orient_q[1]
-            self.__last_orientation_y = meas_orient_q[2]
-            self.__last_orientation_z = meas_orient_q[3]
-            self.__last_orientation_w = meas_orient_q[0]
+            self.__last_orientation_q = meas_orient_q
 
             # debugging pose to /estimated_pose
             pub_pose.pose.orientation.x = meas_orient_q[1]
@@ -459,26 +455,27 @@ class ParticleFilter(object):
             pub_euler.yaw = self.__euler[2]
             self.__pub_euler.publish(pub_euler)
 
-            print "gemessenes Quaternion: "
-            print average_quaternion
+            #print "gemessenes Quaternion: "
+            #print average_quaternion
 
-            print "transformiertes Quaternion in body frame: "
-            print meas_orient_q
+            #print "transformiertes Quaternion in body frame: "
+            #print meas_orient_q
 
-            print "Aus Quaternion berechnete Rotationsmatrix: "
-            print meas_orient_matrix
+            #print "Aus Quaternion berechnete Rotationsmatrix: "
+            #print meas_orient_matrix
 
-            print "Berechnete Eulerwinkel: "
-            print self.__euler
+            #print "Berechnete Eulerwinkel: "
+            #print self.__euler
 
-            print "Aus Eulerwinkeln berechnete Rotationsmatrix: "
-            print euler_angles_to_rotation_matrix(self.__euler)
+            #print "Aus Eulerwinkeln berechnete Rotationsmatrix: "
+            #print euler_angles_to_rotation_matrix(self.__euler)
 
             # pose to /mavros/vision_pose/pose
-            # conversion from NED to ENU
+            # conversion from NED to ENU (because Pixracer expects to get pose in ENU)
             rot_mat = np.array([[0, 1.0, 0], [1.0, 0, 0], [0, 0, -1.0]])
             quat_ned = Quaternion(matrix=rot_mat)
             test_quat = meas_orient_q * quat_ned.conjugate
+            self.__last_orientation_q_enu = test_quat
 
 
             """
@@ -490,10 +487,6 @@ class ParticleFilter(object):
             pub_mav_pose.pose.orientation.y = meas_orient_q[1]
             pub_mav_pose.pose.orientation.z = - meas_orient_q[3]
             """
-
-            # swapped_axes_quat = Quaternion(pub_pose.pose.orientation.w, pub_pose.pose.orientation.x, pub_pose.pose.orientation.y, pub_pose.pose.orientation.z)
-            # print "swapped axes: " + str(swapped_axes_quat)
-            # print "transformed quat: " + str(test_quat)
 
             """
             # body-fixed NED -> ROS ENU: 
@@ -515,24 +508,22 @@ class ParticleFilter(object):
         # if no measurement received: publish last measured orientation
         else:
             # debugging pose to /estimated_pose
-            pub_pose.pose.orientation.x = self.__last_orientation_x
-            pub_pose.pose.orientation.y = self.__last_orientation_y
-            pub_pose.pose.orientation.z = self.__last_orientation_z
-            pub_pose.pose.orientation.w = self.__last_orientation_w
+            pub_pose.pose.orientation.x = self.__last_orientation_q[1]
+            pub_pose.pose.orientation.y = self.__last_orientation_q[2]
+            pub_pose.pose.orientation.z = self.__last_orientation_q[3]
+            pub_pose.pose.orientation.w = self.__last_orientation_q[0]
 
             # to /mavros/vision_pose/pose
-            pub_mav_pose.pose.orientation.x = self.__last_orientation_x
-            pub_mav_pose.pose.orientation.y = self.__last_orientation_y
-            pub_mav_pose.pose.orientation.z = self.__last_orientation_z
-            pub_mav_pose.pose.orientation.w = self.__last_orientation_w
+            pub_mav_pose.pose.orientation.x = self.__last_orientation_q_enu[1]
+            pub_mav_pose.pose.orientation.y = self.__last_orientation_q_enu[2]
+            pub_mav_pose.pose.orientation.z = self.__last_orientation_q_enu[3]
+            pub_mav_pose.pose.orientation.w = self.__last_orientation_q_enu[0]
 
         # publishing both poses
         self.__pub_est_pose.publish(pub_pose)
         self.__pub_mavros_pose.publish(pub_mav_pose)
         # without converting to ENU:
         #self.__pub_mavros_pose.publish(pub_pose)
-
-
 
         if se.use_rviz:
             # publish particles as PoseArray() (only used for rviz)
