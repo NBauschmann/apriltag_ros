@@ -502,8 +502,8 @@ class ParticleFilter(object):
             pub_mav_pose.pose.orientation.z = test_quat[3]
             pub_mav_pose.pose.orientation.w = test_quat[0]
 
-            print "Fuer Pixracer transformiertes q: "
-            print test_quat
+            # print "Fuer Pixracer transformiertes q: "
+            # print test_quat
 
         # if no measurement received: publish last measured orientation
         else:
