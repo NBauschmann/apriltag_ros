@@ -57,6 +57,9 @@ for wall closest to big windows (wall 1): q1 = 0.5 - 0.5i - 0.5j + 0.5k
 for wall closest to wave tank (wall 2): q2 = 0 + 0i - 0.707107j + 0.707107k
 for wall closest to computers (wall 3): q3 = 0.5 - 0.5i + 0.5j - 0.5k 
 for wall closest to stairs (wall 4): q4 = 0.707107 - 0.707107i + 0j + 0k
+
+Floor:
+
 calculated below
 """
 
@@ -77,6 +80,9 @@ tag_w3_orientation = Quaternion(matrix=rotation_w3)
 rotation_w4 = np.array([[1.0, 0, 0], [0, 0, 1.0], [0, -1.0, 0]])
 tag_w4_orientation = Quaternion(matrix=rotation_w4)
 
+# calculating quaternion for floor (tag's bottom edge facing wall 1)
+rotation_f = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])                 # TODO !!!
+tag_f_orientation = Quaternion(matrix=rotation_f)
 
 """
 Create object of class Tag for every used tag 
@@ -84,6 +90,66 @@ Position needs to be [m]
 
 Add Tags in list tags at the bottom
 """
+
+# Tags on tank floor
+# mounted on cross
+
+depth = 1.5
+
+# position of the center in tank
+x_c = 0
+y_c = 0
+
+Tag_0 = tc.Tag(0, np.array([x_c - 0.93, y_c, depth]), tag_f_orientation)
+Tag_1 = tc.Tag(1, np.array([x_c - 0.5, y_c, depth]), tag_f_orientation)
+Tag_2 = tc.Tag(2, np.array([x_c, y_c, depth]), tag_f_orientation)       # center tag
+Tag_3 = tc.Tag(3, np.array([x_c + 0.5, y_c, depth]), tag_f_orientation)
+Tag_4 = tc.Tag(4, np.array([x_c + 0.95, y_c, depth]), tag_f_orientation)
+Tag_5 = tc.Tag(5, np.array([x_c, y_c + 0.75, depth]), tag_f_orientation)
+Tag_6 = tc.Tag(6, np.array([x_c, y_c + 0.4, depth]), tag_f_orientation)
+Tag_7 = tc.Tag(7, np.array([x_c, y_c - 0.4, depth]), tag_f_orientation)
+Tag_8 = tc.Tag(8, np.array([x_c, y_c - 0.75, depth]), tag_f_orientation)
+
+# currently not used from here
+Tag_9 = tc.Tag(9, np.array([0, 0, depth]), tag_f_orientation)
+Tag_10 = tc.Tag(10, np.array([0, 0, depth]), tag_f_orientation)
+Tag_11 = tc.Tag(11, np.array([0, 0, depth]), tag_f_orientation)
+Tag_12 = tc.Tag(12, np.array([0, 0, depth]), tag_f_orientation)
+Tag_13 = tc.Tag(13, np.array([0, 0, depth]), tag_f_orientation)
+Tag_14 = tc.Tag(14, np.array([0, 0, depth]), tag_f_orientation)
+Tag_15 = tc.Tag(15, np.array([0, 0, depth]), tag_f_orientation)
+Tag_16 = tc.Tag(16, np.array([0, 0, depth]), tag_f_orientation)
+Tag_17 = tc.Tag(17, np.array([0, 0, depth]), tag_f_orientation)
+Tag_18 = tc.Tag(18, np.array([0, 0, depth]), tag_f_orientation)
+Tag_19 = tc.Tag(19, np.array([0, 0, depth]), tag_f_orientation)
+
+# smaller tags
+Tag_20 = tc.Tag(20, np.array([x_c - 0.7, y_c, depth]), tag_f_orientation)
+Tag_21 = tc.Tag(21, np.array([x_c - 0.25, y_c, depth]), tag_f_orientation)
+Tag_22 = tc.Tag(22, np.array([x_c + 0.25, y_c, depth]), tag_f_orientation)
+Tag_23 = tc.Tag(23, np.array([x_c + 0.7, y_c, depth]), tag_f_orientation)
+Tag_24 = tc.Tag(24, np.array([x_c, y_c + 0.57, depth]), tag_f_orientation)
+Tag_25 = tc.Tag(25, np.array([x_c, y_c + 0.2, depth]), tag_f_orientation)
+Tag_26 = tc.Tag(26, np.array([x_c, y_c - 0.2, depth]), tag_f_orientation)
+Tag_27 = tc.Tag(27, np.array([x_c, y_c - 0.57, depth]), tag_f_orientation)
+
+
+tags = [Tag_0, Tag_1, Tag_2, Tag_3, Tag_4, Tag_5, Tag_6, Tag_7, Tag_8, Tag_9, Tag_10, Tag_11, Tag_12, Tag_13, Tag_14, Tag_15, Tag_16, Tag_17, Tag_18, Tag_19, Tag_20, Tag_21, Tag_22, Tag_23, Tag_24, Tag_25, Tag_26, Tag_27]
+
+
+
+
+"""
+# Tags for orientation test
+Tag_0 = tc.Tag(0, np.array([1.6, 2.0, 0.7]), tag_w2_orientation)
+Tag_1 = tc.Tag(1, np.array([2.0, 2.0, 0.7]), tag_w2_orientation)
+Tag_2 = tc.Tag(2, np.array([2.4, 2.0, 0.7]), tag_w2_orientation)
+
+tags = [Tag_0, Tag_1, Tag_2]
+"""
+
+"""
+# Used tags mounted in tank
 
 # Tags an Stangen
 
@@ -105,16 +171,6 @@ s6 = 0
 
 # anbringtiefe stangen
 d = 1.0
-
-# Tags for orientation test
-Tag_0 = tc.Tag(0, np.array([1.6, 2.0, 0.7]), tag_w2_orientation)
-Tag_1 = tc.Tag(1, np.array([2.0, 2.0, 0.7]), tag_w2_orientation)
-Tag_2 = tc.Tag(2, np.array([2.4, 2.0, 0.7]), tag_w2_orientation)
-
-tags = [Tag_0, Tag_1, Tag_2]
-
-"""
-# Used tags mounted in tank
 
 Tag_2 = tc.Tag(0, np.array([0.0, 0.4 + s1, d]), tag_w3_orientation) # tag 2 and 0 were originally swapped, todo: change order
 Tag_1 = tc.Tag(1, np.array([0.0, 0.85 + s1, d]), tag_w3_orientation)
