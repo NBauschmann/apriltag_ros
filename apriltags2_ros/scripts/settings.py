@@ -81,7 +81,7 @@ rotation_w4 = np.array([[1.0, 0, 0], [0, 0, 1.0], [0, -1.0, 0]])
 tag_w4_orientation = Quaternion(matrix=rotation_w4)
 
 # calculating quaternion for floor (tag's bottom edge facing wall 1)
-rotation_f = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])                 # TODO !!!
+rotation_f = np.array([[0, -1.0, 0], [-1.0, 0, 0], [0, 0, -1]])                 # TODO !!!
 tag_f_orientation = Quaternion(matrix=rotation_f)
 
 """
