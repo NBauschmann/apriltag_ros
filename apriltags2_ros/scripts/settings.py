@@ -36,6 +36,29 @@ tank_size_y = 2.0
 tank_size_z = 1.5
 
 
+# Quaternion to transform from camera frame
+# to body-fixed frame (x pointing forward, y to the right, z down)
+
+# Camera facing downwards, cable facing in x-direction of body-fixed frame
+# (x pointing left, y pointing forward, z pointing down)
+camera_to_body_rotation_matrix = np.array([[0, 1.0, 0], [-1.0, 0, 0], [0, 0, 1.0]])
+camera_to_body_q = Quaternion(matrix=camera_to_body_rotation_matrix)
+
+"""
+# Camera facing downwards, cable facing backwards (opposite x-direction of body-fixed frame)
+# (x pointing left, y pointing forward, z pointing down)
+camera_to_body_rotation_matrix = np.array([[0, -1.0, 0], [1.0, 0, 0], [0, 0, 1.0]])
+camera_to_body_q = Quaternion(matrix=camera_to_body_rotation_matrix)
+"""
+
+"""
+# Camera facing forward (z pointing forward, x to the right, y down)
+
+camera_to_body_rotation_matrix = np.array([[0, 0, 1.0], [1.0, 0, 0], [0, 1.0, 0]])
+camera_to_body_q = Quaternion(matrix=camera_to_body_rotation_matrix)
+"""
+
+
 """ Tag positions and orientations inside the tank """
 
 """
@@ -81,7 +104,7 @@ rotation_w4 = np.array([[1.0, 0, 0], [0, 0, 1.0], [0, -1.0, 0]])
 tag_w4_orientation = Quaternion(matrix=rotation_w4)
 
 # calculating quaternion for floor (tag's bottom edge facing wall 1)
-rotation_f = np.array([[0, -1.0, 0], [-1.0, 0, 0], [0, 0, -1]])                 # TODO !!!
+rotation_f = np.array([[0, -1.0, 0], [-1.0, 0, 0], [0, 0, -1.0]])
 tag_f_orientation = Quaternion(matrix=rotation_f)
 
 """
@@ -97,8 +120,8 @@ Add Tags in list tags at the bottom
 depth = 1.5
 
 # position of the center in tank
-x_c = 0
-y_c = 0
+x_c = 2
+y_c = 1
 
 Tag_0 = tc.Tag(0, np.array([x_c - 0.93, y_c, depth]), tag_f_orientation)
 Tag_1 = tc.Tag(1, np.array([x_c - 0.5, y_c, depth]), tag_f_orientation)

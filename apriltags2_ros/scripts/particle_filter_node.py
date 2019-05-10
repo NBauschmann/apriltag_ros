@@ -48,11 +48,9 @@ last_orientation_y = 0
 last_orientation_z = 0
 last_orientation_w = 0
 
-# Quaternion to transform from camera frame (z pointing forward, x to the right, y down)
+# Quaternion to transform from camera frame
 # to body-fixed frame (x pointing forward, y to the right, z down)
-# (not sure if this might need to be inverted)
-camera_to_body_rotation_matrix = np.array([[0, 0, 1.0], [1.0, 0, 0], [0, 1.0, 0]])
-camera_to_body_q = Quaternion(matrix=camera_to_body_rotation_matrix)
+camera_to_body_q = se.camera_to_body_q
 
 
 # not needed anymore
