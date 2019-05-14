@@ -117,11 +117,11 @@ Add Tags in list tags at the bottom
 # Tags on tank floor
 # mounted on cross
 
-depth = 1.5
+depth = 1.0
 
 # position of the center in tank
-x_c = 2
-y_c = 1
+x_c = 1.77
+y_c = 0.85
 
 Tag_0 = tc.Tag(0, np.array([x_c - 0.93, y_c, depth]), tag_f_orientation)
 Tag_1 = tc.Tag(1, np.array([x_c - 0.5, y_c, depth]), tag_f_orientation)
