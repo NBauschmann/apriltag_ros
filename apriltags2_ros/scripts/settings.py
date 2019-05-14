@@ -15,10 +15,10 @@ todo: move NumV here as well
 """ Particle filter parameters """
 
 # Publish transforms and particles for Rviz
-use_rviz = True
+use_rviz = False
 
 # Number of particles
-numP = 200
+numP = 100
 
 # Noise parameters
 particle_sense_noise = 0
@@ -30,9 +30,12 @@ cov_mat_parameter = 0.1
 
 
 # size of tank:
-# so far minimum = 0 todo
-tank_size_x = 4.0
-tank_size_y = 2.0
+# minimum to avoid problems too close to 0:
+tank_lb = -0.3
+
+# max
+tank_size_x = 4.3
+tank_size_y = 2.3
 tank_size_z = 2.0
 
 

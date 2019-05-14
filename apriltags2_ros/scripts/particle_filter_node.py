@@ -200,15 +200,15 @@ class Boat(object):
         if noisy:
             # adding noise to position
             a = random.gauss(0.0, self.__move_noise)
-            while (0 > (a + self.__x)) or ((a + self.__x) >= se.tank_size_x):
+            while (se.tank_lb > (a + self.__x)) or ((a + self.__x) >= se.tank_size_x):
                 a = random.gauss(0.0, self.__move_noise)
 
             b = random.gauss(0.0, self.__move_noise)
-            while (0 > (b + self.__y)) or ((b + self.__y) >= se.tank_size_y):
+            while (se.tank_lb > (b + self.__y)) or ((b + self.__y) >= se.tank_size_y):
                 b = random.gauss(0.0, self.__move_noise)
 
             c = random.gauss(0.0, self.__move_noise)
-            while (0 > (c + self.__z)) or ((c + self.__z) >= se.tank_size_z):
+            while (se.tank_lb > (c + self.__z)) or ((c + self.__z) >= se.tank_size_z):
                 c = random.gauss(0.0, self.__move_noise)
 
             self.__x += a
@@ -407,6 +407,9 @@ class ParticleFilter(object):
         x_mean = mean(all_x)
         y_mean = mean(all_y)
         z_mean = mean(all_z)
+        #x_mean = np.average(all_x)
+        #y_mean = np.average(all_y)
+        #z_mean = np.average(all_z)
 
         # print np.std(all_x), np.std(all_y), np.std(all_z)
         # rospy.loginfo('seen_tag_id: {}, x_mean: {}'.format(tag_id, x_mean))
