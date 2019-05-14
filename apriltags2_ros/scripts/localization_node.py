@@ -50,7 +50,6 @@ class TagMonitor(object):
             if se.use_rviz:
                 tp = PoseStamped()
                 tp.header = u.make_header("camera")
-                tp.child_frame_id = "Tag" + str(tag_id)
                 tp.pose.position.x = x
                 tp.pose.position.y = y
                 tp.pose.position.z = z
