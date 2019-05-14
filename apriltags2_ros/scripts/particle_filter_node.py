@@ -149,11 +149,11 @@ class Boat(object):
 
     def set(self, x, y, z): #, orientation):
         """set boat's position and orientation in the tank"""
-        if x >= se.tank_size_x or x < 0:
+        if x >= se.tank_size_x or x < se.tank_lb:
             raise ValueError('x coordinate out of bound')
-        if y >= se.tank_size_y or y < 0:
+        if y >= se.tank_size_y or y < se.tank_lb:
             raise ValueError('y coordinate out of bound')
-        if z >= se.tank_size_z or z < 0:
+        if z >= se.tank_size_z or z < se.tank_lb:
             raise ValueError('z coordinate out of bound')
 
         self.__x = x
