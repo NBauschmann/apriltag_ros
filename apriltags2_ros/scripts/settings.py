@@ -36,7 +36,7 @@ tank_lb = -0.3
 # max
 tank_size_x = 4.3
 tank_size_y = 2.3
-tank_size_z = 2.0
+tank_size_z = 1.5
 
 
 # Quaternion to transform from camera frame
@@ -120,7 +120,7 @@ Add Tags in list tags at the bottom
 # Tags on tank floor
 # mounted on cross
 
-depth = 1.0
+depth = 1.5
 
 # position of the center in tank
 x_c = 1.77
