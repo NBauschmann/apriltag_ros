@@ -46,6 +46,7 @@ class TagMonitor(object):
             qz = tag.pose.pose.pose.orientation.z
             qw = tag.pose.pose.pose.orientation.w
 
+
             # transform pose into world frame
             dist_cam_tag = np.array([[x], [y], [z]])
             quat_cam_tag = Quaternion(qw, qx, qy, qz)
@@ -119,7 +120,6 @@ def main():
     br = tf2_ros.TransformBroadcaster()
     monitor = TagMonitor(pub, br)
     rospy.Subscriber("/tag_detections", AprilTagDetectionArray, monitor.callback)
-
     rospy.spin()
 
 

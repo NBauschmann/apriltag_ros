@@ -3,7 +3,7 @@
 from pyquaternion import Quaternion
 import numpy as np
 import tag_class as tc
-
+import rospy
 
 """
 This file is for setting any parameters for the particle 
@@ -15,7 +15,7 @@ todo: move NumV here as well
 """ Particle filter parameters """
 
 # Publish transforms and particles for Rviz
-use_rviz = True
+use_rviz = rospy.get_param("/localization_node/rviz")
 
 # Number of particles
 numP = 100
