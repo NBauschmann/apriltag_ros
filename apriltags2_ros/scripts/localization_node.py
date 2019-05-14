@@ -132,7 +132,7 @@ def main():
     pub = rospy.Publisher('hippo_poses', HippoPoses, queue_size=10)
     pub_tag_pos = rospy.Publisher('meas_tag_pos', PoseStamped, queue_size=1)
     br = tf2_ros.TransformBroadcaster()
-    monitor = TagMonitor(pub, br)
+    monitor = TagMonitor(pub, pub_tag_pos, br)
     rospy.Subscriber("/tag_detections", AprilTagDetectionArray, monitor.callback)
     rospy.spin()
 
