@@ -24,9 +24,9 @@ Tag_list = se.tags
 
 
 class TagMonitor(object):
-    def __init__(self, pub, pub_tag_pos, br):
+    def __init__(self, pub, br):
         self.__pub = pub
-        self.__pub_tag_pos = pub_tag_pos
+        #self.__pub_tag_pos = pub_tag_pos
         self.__br = br
 
     def callback(self, msg):
@@ -46,10 +46,11 @@ class TagMonitor(object):
             qy = tag.pose.pose.pose.orientation.y
             qz = tag.pose.pose.pose.orientation.z
             qw = tag.pose.pose.pose.orientation.w
-
+            """
             if se.use_rviz:
                 tp = PoseStamped()
-                tp.header = u.make_header("camera")
+                tp.header.stamp = rospy.Time.now()
+                tp.header.frame_id = "camera"
                 tp.pose.position.x = x
                 tp.pose.position.y = y
                 tp.pose.position.z = z
@@ -57,8 +58,8 @@ class TagMonitor(object):
                 tp.pose.orientation.y = qy
                 tp.pose.orientation.z = qz
                 tp.pose.orientation.w = qw
-
-                # transform pose into world frame
+            """
+            # transform pose into world frame
             dist_cam_tag = np.array([[x], [y], [z]])
             quat_cam_tag = Quaternion(qw, qx, qy, qz)
             #print "Gemessen: " + str(quat_cam_tag.rotation_matrix)
@@ -96,7 +97,7 @@ class TagMonitor(object):
         # publish transforms
         if se.use_rviz:
             self.__br.sendTransform(transforms)
-            self.__pub_tag_pos.publish(tp)
+            #self.__pub_tag_pos.publish(tp)
 
         # publish calculated poses
         hps = HippoPoses()
@@ -129,9 +130,9 @@ def main():
 
     rospy.init_node('localization_node')
     pub = rospy.Publisher('hippo_poses', HippoPoses, queue_size=10)
-    pub_tag_pos = rospy.Publisher('meas_tag_pos', PoseStamped, queue_size=1)
+    #pub_tag_pos = rospy.Publisher('meas_tag_pos', PoseStamped, queue_size=1)
     br = tf2_ros.TransformBroadcaster()
-    monitor = TagMonitor(pub, pub_tag_pos, br)
+    monitor = TagMonitor(pub, br)
     rospy.Subscriber("/tag_detections", AprilTagDetectionArray, monitor.callback)
     rospy.spin()
 
