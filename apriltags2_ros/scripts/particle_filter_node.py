@@ -526,13 +526,14 @@ class ParticleFilter(object):
         # without converting to ENU:
         #self.__pub_mavros_pose.publish(pub_pose)
 
+        """
         if se.use_rviz:
             # publish particles as PoseArray() (only used for rviz)
             pub3 = PoseArray()
             pub3.header = u.make_header("map")
             pub3.poses = self.particles_to_poses(self.__particles)
             self.__pub_particles.publish(pub3)
-
+        """
 
 def main():
 

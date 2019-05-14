@@ -15,7 +15,7 @@ todo: move NumV here as well
 """ Particle filter parameters """
 
 # Publish transforms and particles for Rviz
-use_rviz = False
+use_rviz = True
 
 # Number of particles
 numP = 100
