@@ -33,7 +33,7 @@ cov_mat_parameter = 0.1
 # so far minimum = 0 todo
 tank_size_x = 4.0
 tank_size_y = 2.0
-tank_size_z = 1.5
+tank_size_z = 2.0
 
 
 # Quaternion to transform from camera frame
