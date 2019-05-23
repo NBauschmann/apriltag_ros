@@ -9,13 +9,14 @@ import rospy
 This file is for setting any parameters for the particle 
 filter and the position and orientation of the tags.
 
-todo: move NumV here as well
 """
 
-""" Particle filter parameters """
+""" rviz ROS parameter """
 
 # Publish transforms and particles for Rviz
-use_rviz = rospy.get_param("/localization_node/rviz")
+use_rviz = rospy.get_param("/apriltags2_ros_continuous_node/rviz")
+
+""" Particle filter parameters """
 
 # Number of particles
 numP = 100
