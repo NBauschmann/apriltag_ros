@@ -107,12 +107,13 @@ class TagMonitor(object):
             #print "Measured orientation: " + str(quat_cam_tag_meas)
             #print "Filtered orientation: " + str(quat_cam_tag)
 
-            #position_cam_wf_meas = Tag_list[tag_id].convert_location_to_wf(quat_cam_tag_meas, dist_cam_tag)   # using unfiltered orientation
+            position_cam_wf_meas = Tag_list[tag_id].convert_location_to_wf(quat_cam_tag_meas, dist_cam_tag)   # using unfiltered orientation
             position_cam_wf = Tag_list[tag_id].convert_location_to_wf(quat_cam_tag, dist_cam_tag)   # using filtered orientation
             orientation_cam_wf = Tag_list[tag_id].convert_orientation_to_wf(quat_cam_tag)
 
-            #print "Position using measured orientation: " + str(position_cam_wf_meas)
-            #print "Position using filtered orientation: " + str(position_cam_wf)
+            print "Tag: " + str(tag_id)
+            print "Position using measured orientation: " + str(position_cam_wf_meas)
+            print "Position using filtered orientation: " + str(position_cam_wf)
 
             # print "Umgerechnet: " + str(orientation_cam_wf)
             # print "Umgerechnet S: " + str(orientation_cam_wf.rotation_matrix)
