@@ -51,7 +51,6 @@ def average_quaternions(Q):
 class TagMonitor(object):
     def __init__(self, pub, br):
         self.__pub = pub
-        #self.__pub_tag_pos = pub_tag_pos
         self.__br = br
         self.__last_quaternions = [None] * np.size(Tag_list)
 
@@ -104,24 +103,25 @@ class TagMonitor(object):
             quat_cam_tag_meas = quat_meas  # using unfiltered orientation
             quat_cam_tag = quat_av   # using moving average orientation
 
-            #print "Measured orientation: " + str(quat_cam_tag_meas)
-            #print "Filtered orientation: " + str(quat_cam_tag)
+            print "Tag: " + str(tag_id)
+            print "Measured orientation: " + str(quat_cam_tag_meas)
+            print "Filtered orientation: " + str(quat_cam_tag)
 
             position_cam_wf_meas = Tag_list[tag_id].convert_location_to_wf(quat_cam_tag_meas, dist_cam_tag)   # using unfiltered orientation
             position_cam_wf = Tag_list[tag_id].convert_location_to_wf(quat_cam_tag, dist_cam_tag)   # using filtered orientation
             orientation_cam_wf = Tag_list[tag_id].convert_orientation_to_wf(quat_cam_tag)
 
-            print "Tag: " + str(tag_id)
-            print "Position using measured orientation: " + str(position_cam_wf_meas)
-            print "Position using filtered orientation: " + str(position_cam_wf)
+
+            #print "Orientation using measured orientation: " + str(position_cam_wf_meas)
+            #print "Orientation using filtered orientation: " + str(position_cam_wf)
 
             # print "Umgerechnet: " + str(orientation_cam_wf)
             # print "Umgerechnet S: " + str(orientation_cam_wf.rotation_matrix)
 
-            # publish "measured by this tag" camera pose (in world frame) as transform
+            # publish transforms
             if se.use_rviz:
 
-                # measured position of each tag
+                # "measured by this tag" camera pose (in world frame)
                 msg = geometry_msgs.msg.TransformStamped()
                 msg.header = u.make_header("map")
                 msg.child_frame_id = "Pose_Tag" + str(tag_id)
@@ -196,7 +196,6 @@ def main():
 
     rospy.init_node('localization_node')
     pub = rospy.Publisher('hippo_poses', HippoPoses, queue_size=10)
-    #pub_tag_pos = rospy.Publisher('meas_tag_pos', PoseStamped, queue_size=1)
     br = tf2_ros.TransformBroadcaster()
     monitor = TagMonitor(pub, br)
     rospy.Subscriber("/tag_detections", AprilTagDetectionArray, monitor.callback)
