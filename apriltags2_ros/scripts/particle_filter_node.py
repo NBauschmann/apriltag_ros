@@ -394,7 +394,8 @@ class ParticleFilter(object):
 
         # if len(msg.poses) = 0 -> no new measurements
         else:
-            print("No new Measurement")
+            #print("No new Measurement")
+            pass
 
         # calculate mean position of particles
         all_x = []

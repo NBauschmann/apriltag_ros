@@ -20,7 +20,6 @@ Tag_list = se.tags
 # add more tags or change parameters in settings.py
 
 
-
 def average_quaternions(Q):
     # Q is a Nx4 numpy matrix and contains the quaternions to average in the rows.
     # The quaternions are arranged as (w,x,y,z), with w being the scalar
@@ -52,13 +51,34 @@ class TagMonitor(object):
     def __init__(self, pub, br):
         self.__pub = pub
         self.__br = br
-        self.__last_quaternions = [None] * np.size(Tag_list)
+        # self.__last_quaternions = [None] * np.size(Tag_list)
 
     def callback(self, msg):
 
-        all_measurements = []
+        all_measurements = []  # for publishing measurements for particle filter
 
-        transforms = []
+        transforms = []        # for publishing transforms for visualization in rviz
+
+        orientations = []      # measured orientations for averaging
+
+        # save the measured orientations
+        for tag in msg.detections:
+
+            orientation = [tag.pose.pose.pose.orientation.w, tag.pose.pose.pose.orientation.x,
+                           tag.pose.pose.pose.orientation.y, tag.pose.pose.pose.orientation.z]
+            orientations.append(orientation)
+
+        if orientations:
+            orientations = np.asarray(orientations)
+            # print orientations
+
+            # calculate average orientation
+            # -> if all tags on floor (facing same direction) orientation
+            # of camera to tag should be the same for all measured tags!
+            quat_meas_array = average_quaternions(orientations)   # as array
+            quat_av = Quaternion(quat_meas_array).normalised      # as quaternion
+
+            # print "Filtered/average orientation: " + str(quat_av)
 
         # get data from topic /tag_detections
         for tag in msg.detections:
@@ -71,67 +91,34 @@ class TagMonitor(object):
             qy = tag.pose.pose.pose.orientation.y
             qz = tag.pose.pose.pose.orientation.z
             qw = tag.pose.pose.pose.orientation.w
-            quat_meas = Quaternion(qw, qx, qy, qz)
 
-            # filtering measured orientation using moving average
-            if self.__last_quaternions[tag_id] is not None:
+            dist_cam_tag = np.array([[x], [y], [z]])        # measured distance to tag in camera frame
+            quat_cam_tag_meas = Quaternion(qw, qx, qy, qz)  # actual measured orientation of tag to camera
 
-                quat_last = self.__last_quaternions[tag_id]
-                # calculating distance between last measurement and new one
-                dist_quat = Quaternion.absolute_distance(quat_meas, quat_last)
-                print str(dist_quat)
+            # Which orientation to use?
+            quat_cam_tag = quat_av                   # using "filtered" orientation
+            # quat_cam_tag = quat_cam_tag_meas       # using unfiltered orientation (measured orientation for each tag)
+            # quat_cam_tag = Quaternion(0, 1.0, 0, 0)  # using hardcoded actual orientation (if facing straight down)
 
-                # checking for outliers todo
-                if dist_quat > 0.01:
-                    k = 0.01
-                    # taking the naive average by averaging each element todo
-                    mov_av_qw = (1 - k) * quat_last[0] + k * quat_meas[0]
-                    mov_av_qx = (1 - k) * quat_last[1] + k * quat_meas[1]
-                    mov_av_qy = (1 - k) * quat_last[2] + k * quat_meas[2]
-                    mov_av_qz = (1 - k) * quat_last[3] + k * quat_meas[3]
-
-                else:
-                    k = 0.2
-                    # taking the naive average by averaging each element todo
-                    mov_av_qw = (1 - k) * quat_last[0] + k * quat_meas[0]
-                    mov_av_qx = (1 - k) * quat_last[1] + k * quat_meas[1]
-                    mov_av_qy = (1 - k) * quat_last[2] + k * quat_meas[2]
-                    mov_av_qz = (1 - k) * quat_last[3] + k * quat_meas[3]
-
-                quat_av = Quaternion(mov_av_qw, mov_av_qx, mov_av_qy, mov_av_qz).normalised
-
-            else:
-                quat_av = quat_meas
-
-            # saving measured quaternion in the corresponding list entry for this tag for filtering
-            self.__last_quaternions[tag_id] = quat_av
-
-            # transform pose into world frame
-            dist_cam_tag = np.array([[x], [y], [z]])
-
-            quat_cam_tag_meas = quat_meas  # using unfiltered orientation
-            quat_cam_tag = quat_av   # using moving average orientation
-            # quat_cam_tag = Quaternion(0, 1.0, 0, 0)  # hardcoded actual orientation
-
-            print "Tag: " + str(tag_id)
-            print "Measured orientation: " + str(quat_cam_tag_meas)
-            print "Filtered orientation: " + str(quat_cam_tag)
-
-            #position_cam_wf_meas = Tag_list[tag_id].convert_location_to_wf(quat_cam_tag_meas, dist_cam_tag)   # using unfiltered orientation
-            position_cam_wf = Tag_list[tag_id].convert_location_to_wf(quat_cam_tag, dist_cam_tag)   # using filtered orientation
+            # TRANSFORMING POSE INTO WORLD FRAME
+            # -> using filtered orientation but measured position
+            position_cam_wf = Tag_list[tag_id].convert_location_to_wf(quat_cam_tag, dist_cam_tag)
             orientation_cam_wf = Tag_list[tag_id].convert_orientation_to_wf(quat_cam_tag)
 
+            # for debugging only
+            # -> using unfiltered orientation to calculate pose of camera
+            # position_cam_wf_meas = Tag_list[tag_id].convert_location_to_wf(quat_cam_tag_meas, dist_cam_tag)
+            # orientation_cam_wf_meas = Tag_list[tag_id].convert_orientation_to_wf(quat_cam_tag_meas)
 
-            #print "position using measured orientation: " + str(position_cam_wf_meas)
-            #print "position using filtered orientation: " + str(position_cam_wf)
+            # print "Measured orientation by Tag" + str(tag_id) + ": " + str(quat_cam_tag_meas)
 
-            # print "Umgerechnet: " + str(orientation_cam_wf)
-            # print "Umgerechnet S: " + str(orientation_cam_wf.rotation_matrix)
+            # print "position using measured orientation: " + str(position_cam_wf_meas)
+            # print "position using filtered orientation: " + str(position_cam_wf)
 
-            # publish transforms
+            # writing messages to publish transforms for visualization (published further down)
             if se.use_rviz:
 
-                # "measured by this tag" camera pose (in world frame)
+                # "measured by this tag" CAMERA POSE IN WORLD FRAME (using "filtered" orientation)
                 msg1 = geometry_msgs.msg.TransformStamped()
                 msg1.header = u.make_header("map")
                 msg1.child_frame_id = "Pose_Tag" + str(tag_id)
@@ -144,7 +131,8 @@ class TagMonitor(object):
                 msg1.transform.rotation.w = orientation_cam_wf[0]
                 transforms.append(msg1)
 
-                # Measured tag frame using "filtered" orientation
+                # Measured TAG FRAME (using "filtered" orientation)
+                # (apriltags2_ros is publishing transform for measured TAG FRAME using the measured orientation)
                 msg2 = geometry_msgs.msg.TransformStamped()
                 msg2.header = u.make_header("camera")
                 msg2.child_frame_id = "Tag_" + str(tag_id)
@@ -169,13 +157,12 @@ class TagMonitor(object):
             measurement.append(tag_id)
 
             all_measurements.append(measurement)
-
+            
         # publish transforms
         if se.use_rviz:
             self.__br.sendTransform(transforms)
-            #self.__pub_tag_pos.publish(tp)
 
-        # publish calculated poses
+        # publish calculated poses:
         hps = HippoPoses()
         measurements_poses = []
 
