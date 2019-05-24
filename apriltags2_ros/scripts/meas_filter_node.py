@@ -82,7 +82,7 @@ class TagMonitor(object):
                 print str(dist_quat)
 
                 # checking for outliers todo
-                if dist_quat > 2:
+                if dist_quat > 0.01:
                     k = 0.01
                     # taking the naive average by averaging each element todo
                     mov_av_qw = (1 - k) * quat_last[0] + k * quat_meas[0]
