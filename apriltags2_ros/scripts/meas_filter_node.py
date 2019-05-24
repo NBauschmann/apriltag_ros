@@ -100,9 +100,9 @@ class TagMonitor(object):
             # transform pose into world frame
             dist_cam_tag = np.array([[x], [y], [z]])
 
-            quat_cam_tag_meas = Quaternion(0, 1.0, 0, 0)   # hardcoded actual orientation
-            #quat_cam_tag_meas = quat_meas  # using unfiltered orientation
-            quat_cam_tag = quat_av   # using moving average orientation
+            quat_cam_tag_meas = quat_meas  # using unfiltered orientation
+            # quat_cam_tag = quat_av   # using moving average orientation
+            quat_cam_tag = Quaternion(0, 1.0, 0, 0)  # hardcoded actual orientation
 
             print "Tag: " + str(tag_id)
             print "Measured orientation: " + str(quat_cam_tag_meas)
