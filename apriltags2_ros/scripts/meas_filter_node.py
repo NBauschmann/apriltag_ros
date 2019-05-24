@@ -78,16 +78,25 @@ class TagMonitor(object):
 
                 quat_last = self.__last_quaternions[tag_id]
                 # calculating distance between last measurement and new one
-                # dist_quat = Quaternion.absolute_distance(quat_meas, quat_last)
+                dist_quat = Quaternion.absolute_distance(quat_meas, quat_last)
+                print str(dist_quat)
 
                 # checking for outliers todo
-                #if dist_quat > ...
+                if dist_quat > 2:
+                    k = 0.01
+                    # taking the naive average by averaging each element todo
+                    mov_av_qw = (1 - k) * quat_last[0] + k * quat_meas[0]
+                    mov_av_qx = (1 - k) * quat_last[1] + k * quat_meas[1]
+                    mov_av_qy = (1 - k) * quat_last[2] + k * quat_meas[2]
+                    mov_av_qz = (1 - k) * quat_last[3] + k * quat_meas[3]
 
-                # taking the naive average by averaging each element todo
-                mov_av_qw = 0.9 * quat_last[0] + 0.1 * quat_meas[0]
-                mov_av_qx = 0.9 * quat_last[1] + 0.1 * quat_meas[1]
-                mov_av_qy = 0.9 * quat_last[2] + 0.1 * quat_meas[2]
-                mov_av_qz = 0.9 * quat_last[3] + 0.1 * quat_meas[3]
+                else:
+                    k = 0.2
+                    # taking the naive average by averaging each element todo
+                    mov_av_qw = (1 - k) * quat_last[0] + k * quat_meas[0]
+                    mov_av_qx = (1 - k) * quat_last[1] + k * quat_meas[1]
+                    mov_av_qy = (1 - k) * quat_last[2] + k * quat_meas[2]
+                    mov_av_qz = (1 - k) * quat_last[3] + k * quat_meas[3]
 
                 quat_av = Quaternion(mov_av_qw, mov_av_qx, mov_av_qy, mov_av_qz).normalised
 
@@ -101,8 +110,8 @@ class TagMonitor(object):
             dist_cam_tag = np.array([[x], [y], [z]])
 
             quat_cam_tag_meas = quat_meas  # using unfiltered orientation
-            # quat_cam_tag = quat_av   # using moving average orientation
-            quat_cam_tag = Quaternion(0, 1.0, 0, 0)  # hardcoded actual orientation
+            quat_cam_tag = quat_av   # using moving average orientation
+            # quat_cam_tag = Quaternion(0, 1.0, 0, 0)  # hardcoded actual orientation
 
             print "Tag: " + str(tag_id)
             print "Measured orientation: " + str(quat_cam_tag_meas)
@@ -113,8 +122,8 @@ class TagMonitor(object):
             orientation_cam_wf = Tag_list[tag_id].convert_orientation_to_wf(quat_cam_tag)
 
 
-            #print "Orientation using measured orientation: " + str(position_cam_wf_meas)
-            #print "Orientation using filtered orientation: " + str(position_cam_wf)
+            #print "position using measured orientation: " + str(position_cam_wf_meas)
+            #print "position using filtered orientation: " + str(position_cam_wf)
 
             # print "Umgerechnet: " + str(orientation_cam_wf)
             # print "Umgerechnet S: " + str(orientation_cam_wf.rotation_matrix)
@@ -135,8 +144,7 @@ class TagMonitor(object):
                 msg1.transform.rotation.w = orientation_cam_wf[0]
                 transforms.append(msg1)
 
-
-                # filtered orientation
+                # Measured tag frame using "filtered" orientation
                 msg2 = geometry_msgs.msg.TransformStamped()
                 msg2.header = u.make_header("camera")
                 msg2.child_frame_id = "Tag_" + str(tag_id)
@@ -149,7 +157,7 @@ class TagMonitor(object):
                 msg2.transform.rotation.w = quat_cam_tag[0]
                 transforms.append(msg2)
 
-
+            # saving measurement
             measurement = []
             measurement.append(position_cam_wf[0])
             measurement.append(position_cam_wf[1])
@@ -192,7 +200,6 @@ class TagMonitor(object):
         hps.poses = measurements_poses
 
         self.__pub.publish(hps)
-
 
 
 def main():
