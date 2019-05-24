@@ -108,7 +108,7 @@ class TagMonitor(object):
             print "Measured orientation: " + str(quat_cam_tag_meas)
             print "Filtered orientation: " + str(quat_cam_tag)
 
-            position_cam_wf_meas = Tag_list[tag_id].convert_location_to_wf(quat_cam_tag_meas, dist_cam_tag)   # using unfiltered orientation
+            #position_cam_wf_meas = Tag_list[tag_id].convert_location_to_wf(quat_cam_tag_meas, dist_cam_tag)   # using unfiltered orientation
             position_cam_wf = Tag_list[tag_id].convert_location_to_wf(quat_cam_tag, dist_cam_tag)   # using filtered orientation
             orientation_cam_wf = Tag_list[tag_id].convert_orientation_to_wf(quat_cam_tag)
 
@@ -136,17 +136,17 @@ class TagMonitor(object):
                 transforms.append(msg)
 
                 # filtered orientation
-                msg = geometry_msgs.msg.TransformStamped()
-                msg.header = u.make_header("camera")
-                msg.child_frame_id = "Tag" + str(tag_id)
-                msg.transform.translation.x = dist_cam_tag[0]
-                msg.transform.translation.y = dist_cam_tag[1]
-                msg.transform.translation.z = dist_cam_tag[2]
-                msg.transform.rotation.x = quat_cam_tag[1]
-                msg.transform.rotation.y = quat_cam_tag[2]
-                msg.transform.rotation.z = quat_cam_tag[3]
-                msg.transform.rotation.w = quat_cam_tag[0]
-                transforms.append(msg)
+                msg_ = geometry_msgs.msg.TransformStamped()
+                msg_.header = u.make_header("camera")
+                msg_.child_frame_id = "Tag" + str(tag_id)
+                msg_.transform.translation.x = dist_cam_tag[0]
+                msg_.transform.translation.y = dist_cam_tag[1]
+                msg_.transform.translation.z = dist_cam_tag[2]
+                msg_.transform.rotation.x = quat_cam_tag[1]
+                msg_.transform.rotation.y = quat_cam_tag[2]
+                msg_.transform.rotation.z = quat_cam_tag[3]
+                msg_.transform.rotation.w = quat_cam_tag[0]
+                transforms.append(msg_)
 
             measurement = []
             measurement.append(position_cam_wf[0])
