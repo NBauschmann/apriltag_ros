@@ -142,10 +142,10 @@ class TagMonitor(object):
                 msg.transform.translation.x = dist_cam_tag[0]
                 msg.transform.translation.y = dist_cam_tag[1]
                 msg.transform.translation.z = dist_cam_tag[2]
-                msg.transform.rotation.x = quat_av[1]
-                msg.transform.rotation.y = quat_av[2]
-                msg.transform.rotation.z = quat_av[3]
-                msg.transform.rotation.w = quat_av[0]
+                msg.transform.rotation.x = quat_cam_tag[1]
+                msg.transform.rotation.y = quat_cam_tag[2]
+                msg.transform.rotation.z = quat_cam_tag[3]
+                msg.transform.rotation.w = quat_cam_tag[0]
                 transforms.append(msg)
 
             measurement = []
