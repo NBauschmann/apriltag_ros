@@ -123,30 +123,32 @@ class TagMonitor(object):
             if se.use_rviz:
 
                 # "measured by this tag" camera pose (in world frame)
-                msg = geometry_msgs.msg.TransformStamped()
-                msg.header = u.make_header("map")
-                msg.child_frame_id = "Pose_Tag" + str(tag_id)
-                msg.transform.translation.x = position_cam_wf[0]
-                msg.transform.translation.y = position_cam_wf[1]
-                msg.transform.translation.z = position_cam_wf[2]
-                msg.transform.rotation.x = orientation_cam_wf[1]
-                msg.transform.rotation.y = orientation_cam_wf[2]
-                msg.transform.rotation.z = orientation_cam_wf[3]
-                msg.transform.rotation.w = orientation_cam_wf[0]
-                transforms.append(msg)
+                msg1 = geometry_msgs.msg.TransformStamped()
+                msg1.header = u.make_header("map")
+                msg1.child_frame_id = "Pose_Tag" + str(tag_id)
+                msg1.transform.translation.x = position_cam_wf[0]
+                msg1.transform.translation.y = position_cam_wf[1]
+                msg1.transform.translation.z = position_cam_wf[2]
+                msg1.transform.rotation.x = orientation_cam_wf[1]
+                msg1.transform.rotation.y = orientation_cam_wf[2]
+                msg1.transform.rotation.z = orientation_cam_wf[3]
+                msg1.transform.rotation.w = orientation_cam_wf[0]
+                transforms.append(msg1)
+
 
                 # filtered orientation
-                msg_ = geometry_msgs.msg.TransformStamped()
-                msg_.header = u.make_header("camera")
-                msg_.child_frame_id = "Tag" + str(tag_id)
-                msg_.transform.translation.x = dist_cam_tag[0]
-                msg_.transform.translation.y = dist_cam_tag[1]
-                msg_.transform.translation.z = dist_cam_tag[2]
-                msg_.transform.rotation.x = quat_cam_tag[1]
-                msg_.transform.rotation.y = quat_cam_tag[2]
-                msg_.transform.rotation.z = quat_cam_tag[3]
-                msg_.transform.rotation.w = quat_cam_tag[0]
-                transforms.append(msg_)
+                msg2 = geometry_msgs.msg.TransformStamped()
+                msg2.header = u.make_header("camera")
+                msg2.child_frame_id = "Tag_" + str(tag_id)
+                msg2.transform.translation.x = dist_cam_tag[0]
+                msg2.transform.translation.y = dist_cam_tag[1]
+                msg2.transform.translation.z = dist_cam_tag[2]
+                msg2.transform.rotation.x = quat_cam_tag[1]
+                msg2.transform.rotation.y = quat_cam_tag[2]
+                msg2.transform.rotation.z = quat_cam_tag[3]
+                msg2.transform.rotation.w = quat_cam_tag[0]
+                transforms.append(msg2)
+
 
             measurement = []
             measurement.append(position_cam_wf[0])
