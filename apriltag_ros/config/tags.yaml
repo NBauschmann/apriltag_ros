@@ -55,7 +55,12 @@ standalone_tags:
     {id: 32, size: 0.0755},
     {id: 33, size: 0.0755},
     {id: 34, size: 0.0755},
-    {id: 35, size: 0.0755}
+    {id: 35, size: 0.0755},
+    # for testing bundles:
+    {id: 48, size: 0.112},
+    {id: 45, size: 0.078},
+    {id: 46, size: 0.078},
+    {id: 49, size: 0.078},
   ]
 # ## Tag bundle definitions
 # ### Remarks
@@ -80,4 +85,14 @@ standalone_tags:
 #   ]
 tag_bundles:
   [
+    {
+      name: 'my_bundle',
+      layout:
+        [
+          {id: 48, size: 0.112, x: 0.0000, y: 0.0000, z: 0.0000, qw: 1.0000, qx: 0.0000, qy: 0.0000, qz: 0.0000},
+          {id: 46, size: 0.078, x: -0.0867, y: -0.1191, z: -0.0029, qw: 1.0000, qx: 0.0020, qy: 0.0029, qz: 0.0065},
+          {id: 45, size: 0.078, x: -0.1171, y: 0.0815, z: 0.0024, qw: 0.9999, qx: 0.0081, qy: 0.0077, qz: 0.0125},
+          {id: 49, size: 0.078, x: 0.0203, y: -0.1202, z: -0.0042, qw: 0.7072, qx: 0.0018, qy: 0.0039, qz: 0.7070}
+        ]
+    }
   ]
